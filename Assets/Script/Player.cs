@@ -4,15 +4,11 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    public float hp;
+    public float stamina;
+    public float attackPower;
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    public float moveSpeed;
+    public float runSpeed;
+    public float rotateSpeed;
 }
