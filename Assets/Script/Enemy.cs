@@ -102,13 +102,6 @@ public class Enemy : MonoBehaviour
             return;
         }
 
-        // 일정 거리 안에 오면 추격
-        if (IsFindEnemy())
-        {
-            ChangeState(AI_State.Trace);
-            return;
-        }
-
         // 회전
         var targetRotation = Quaternion.LookRotation(posOffset, Vector3.up);
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, patrolRotation * Time.deltaTime);
@@ -226,11 +219,6 @@ public class Enemy : MonoBehaviour
         return null;
     }
     #endregion
-
-    bool IsFindEnemy()
-    {
-        return GeometryUtility.TestPlanesAABB(GeometryUtility.CalculateFrustumPlanes(eye), player.transform.GetComponentInChildren<Collider>().bounds);
-    }
 }
 
 
