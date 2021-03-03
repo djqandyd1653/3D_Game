@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.56475663, g: 0.6337671, b: 0.71154505, a: 1}
+  m_IndirectSpecularColor: {r: 0.5647569, g: 0.6337676, b: 0.7115473, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -535,7 +535,7 @@ PrefabInstance:
     - target: {fileID: 4004485965172280927, guid: 604c6a2a7f9c3484a86af004a7dcaf6a,
         type: 3}
       propertyPath: rotatePower
-      value: 10
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 4004485965172280927, guid: 604c6a2a7f9c3484a86af004a7dcaf6a,
         type: 3}
@@ -626,7 +626,7 @@ PrefabInstance:
     - target: {fileID: 4004485965172280927, guid: 604c6a2a7f9c3484a86af004a7dcaf6a,
         type: 3}
       propertyPath: rotatePower
-      value: 10
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 4004485965172280927, guid: 604c6a2a7f9c3484a86af004a7dcaf6a,
         type: 3}
@@ -811,7 +811,7 @@ PrefabInstance:
     - target: {fileID: 4004485965172280927, guid: 604c6a2a7f9c3484a86af004a7dcaf6a,
         type: 3}
       propertyPath: rotatePower
-      value: 10
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 4004485965172280927, guid: 604c6a2a7f9c3484a86af004a7dcaf6a,
         type: 3}
@@ -915,11 +915,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 162542, guid: 604c6a2a7f9c3484a86af004a7dcaf6a, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 472372, guid: 604c6a2a7f9c3484a86af004a7dcaf6a, type: 3}
       propertyPath: m_RootOrder
-      value: 2
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 472372, guid: 604c6a2a7f9c3484a86af004a7dcaf6a, type: 3}
       propertyPath: m_LocalPosition.x
@@ -974,7 +974,7 @@ PrefabInstance:
     - target: {fileID: 4004485965172280927, guid: 604c6a2a7f9c3484a86af004a7dcaf6a,
         type: 3}
       propertyPath: rotatePower
-      value: 10
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 4004485965172280927, guid: 604c6a2a7f9c3484a86af004a7dcaf6a,
         type: 3}
@@ -1281,7 +1281,7 @@ PrefabInstance:
     - target: {fileID: 4004485965172280927, guid: 604c6a2a7f9c3484a86af004a7dcaf6a,
         type: 3}
       propertyPath: rotatePower
-      value: 10
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 4004485965172280927, guid: 604c6a2a7f9c3484a86af004a7dcaf6a,
         type: 3}
@@ -1488,7 +1488,7 @@ PrefabInstance:
     - target: {fileID: 8422892626600249584, guid: 214e08cd5e5d74c458e2a81b7ec2c84c,
         type: 3}
       propertyPath: m_RootOrder
-      value: 3
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 8422892626600249584, guid: 214e08cd5e5d74c458e2a81b7ec2c84c,
         type: 3}
