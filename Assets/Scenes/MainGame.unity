@@ -1418,11 +1418,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hp: 0
+  state: 0
   stamina: 0
+  maxStamina: 100
+  staminaFillAmount: 2
+  staminaChargeCycle: 2
   attackPower: 0
+  vertical: 0
+  horizontal: 0
   moveSpeed: 10
   runSpeed: 20
   rotateSpeed: 0
+  rigid: {fileID: 0}
 --- !u!95 &1752774142 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 8422892626592999198, guid: 214e08cd5e5d74c458e2a81b7ec2c84c,
@@ -1442,7 +1449,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   anim: {fileID: 1752774142}
-  speed: 0
 --- !u!54 &1752774145
 Rigidbody:
   m_ObjectHideFlags: 0
