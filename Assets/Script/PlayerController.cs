@@ -7,14 +7,26 @@ public interface PlayerAction
     void Action();
 }
 
-public class Idle : MonoBehaviour, PlayerAction
+public class StateComponent : MonoBehaviour
 {
-    Player player;
-    float remainTime;   // 스태미나 충전까지 남은 시간
+    protected Player player;
 
-    void Start()
+    protected void Start()
     {
         player = GetComponent<Player>();
+    }
+}
+
+public class Idle : StateComponent, PlayerAction
+{
+    //Player player;
+    float remainTime;   // 스태미나 충전까지 남은 시간
+
+    new void Start()
+    {
+        base.Start();
+
+        //player = GetComponent<Player>();
         remainTime = 0.0f;
     }
 
@@ -38,20 +50,39 @@ public class Idle : MonoBehaviour, PlayerAction
     }
 }
 
-public class Move : MonoBehaviour, PlayerAction
+public class Move : StateComponent, PlayerAction
 {
-    Player player;
+    Rigidbody rigid;
+    Vector3 moveVec;
 
-    void Start()
+    new void Start()
     {
-        player = GetComponent<Player>();
+        base.Start();
+        rigid = player.rigid;
     }
 
     public void Action()
     {
-        Rigidbody rigid = player.rigid;
-        Vector3 moveVec = new Vector3(player.horizontal, 0, player.vertical);
+        moveVec = new Vector3(player.horizontal, 0, player.vertical);
         rigid.MovePosition(transform.position + moveVec * player.moveSpeed * Time.smoothDeltaTime);
+    }
+}
+
+public class Run : StateComponent, PlayerAction
+{
+    Rigidbody rigid;
+    Vector3 moveVec;
+
+    new void Start()
+    {
+        base.Start();
+        rigid = player.rigid;
+    }
+
+    public void Action()
+    {
+        moveVec = new Vector3(player.horizontal, 0, player.vertical);
+        rigid.MovePosition(transform.position + moveVec * player.runSpeed * Time.smoothDeltaTime);
     }
 }
 
@@ -63,20 +94,21 @@ public class Attack : MonoBehaviour, PlayerAction
     }
 }
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : StateComponent
 {
-    Player player;
     public PlayerAction playerAction;
     public Animator anim;
 
-    void Start()
+    new void Start()
     {
+        base.Start();
+
         gameObject.AddComponent<Idle>();
-        gameObject.AddComponent<Move>();    
+        gameObject.AddComponent<Move>();
+        gameObject.AddComponent<Run>();
         gameObject.AddComponent<Attack>();
 
         playerAction = GetComponent<Idle>();
-        player = GetComponent<Player>();
         player.state = Player.State.Idle;
         player.rigid = GetComponent<Rigidbody>();
     }
@@ -90,25 +122,84 @@ public class PlayerController : MonoBehaviour
         InputKey();
     }
 
-    void ChangeState(PlayerAction newAction)
+    void ChangeComponent(PlayerAction newAction, Player.State state)
     {
         playerAction = newAction;
+        ChangeState(state);
+    }
+
+    void ChangeState(Player.State state)
+    {
+        foreach(Player.State arrState in (Player.State[])System.Enum.GetValues(typeof(Player.State)))
+        {
+            string strTempState = "Is" + arrState.ToString();
+            anim.SetBool(strTempState, false);
+        }
+
+        player.state = state;
+
+        string strCurrState = "Is" + state.ToString();
+        anim.SetBool(strCurrState, true);
     }
 
     void InputKey()
     {
-        if ((player.vertical = Input.GetAxis("Vertical")) != 0 ||
-            (player.horizontal = Input.GetAxis("Horizontal")) != 0)
-            ChangeState(GetComponent<Move>());  
+        player.vertical = Input.GetAxis("Vertical");
+        player.horizontal = Input.GetAxis("Horizontal");
+
+        if (player.vertical != 0 || player.horizontal != 0)
+        {
+            ChangeComponent(GetComponent<Move>(), Player.State.Move);
+            //ChangeComponent(GetComponent<Move>());
+            //ChangeState(Player.State.Move);
+
+            anim.SetFloat("Vertical", player.vertical);
+            anim.SetFloat("Horizontal", player.horizontal);
+
+            if(player.vertical != 0)
+            {
+                anim.SetBool("ISMoveForward", true);
+                return;
+            }
+
+            anim.SetBool("ISMoveForward", false);
+        }
+
+        if (!Input.GetButton("Horizontal"))
+        {
+            player.horizontal = 0;
+        }
+
+        if (!Input.GetButton("Vertical"))
+        {
+            player.vertical = 0;
+        }
 
         if (player.vertical == 0 && player.horizontal == 0)
-            ChangeState(GetComponent<Idle>());
+        {
+            ChangeComponent(GetComponent<Move>(), Player.State.Idle);
+            //ChangeComponent(GetComponent<Idle>());
+            //ChangeState(Player.State.Idle);
+        }
+
+        if (player.vertical > 0 && Input.GetKey(KeyCode.LeftShift))
+        {
+            ChangeComponent(GetComponent<Move>(), Player.State.Run);
+            //ChangeComponent(GetComponent<Run>());
+            //ChangeState(Player.State.Run);
+        }
            
         if (Input.GetMouseButton(0))
         {
-            ChangeState(GetComponent<Attack>());
-            anim.SetBool("IsAttack", true);
+            ChangeComponent(GetComponent<Move>(), Player.State.Attack);
+            //ChangeComponent(GetComponent<Attack>());
+            //ChangeState(Player.State.Attack);
         }
+    }
+
+    void MoveAnimCtrl()
+    {
+        //if(player.vertical)
     }
 
     //void ChangeState(PlayerState nextState)

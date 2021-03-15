@@ -90,7 +90,7 @@ public class FishAI : MonoBehaviour
     {
         ContactPoint point = collision.contacts[0];
 
-        angle = Vector3.Dot(-point.normal.normalized, transform.right);
+        angle = Vector3.Dot(-point.normal, transform.right);
         if (angle > 0)
             MoveChange(0);
         else if (angle < 0)

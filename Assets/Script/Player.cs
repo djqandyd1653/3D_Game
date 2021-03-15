@@ -7,8 +7,8 @@ public class Player : MonoBehaviour
     public enum State
     {
         Idle,
-        MoveForward,
-        MoveSide,
+        Move,
+        Run,
         Attack,
         Hit,
         Die
