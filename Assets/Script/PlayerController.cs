@@ -39,7 +39,7 @@ public class Idle : StateComponent, PlayerAction
     {
         if (player.stamina >= player.maxStamina)
             return;
-
+        
         remainTime += Time.deltaTime;
 
         if (remainTime >= player.staminaChargeCycle)
@@ -64,7 +64,8 @@ public class Move : StateComponent, PlayerAction
     public void Action()
     {
         moveVec = new Vector3(player.horizontal, 0, player.vertical);
-        rigid.MovePosition(transform.position + moveVec * player.moveSpeed * Time.smoothDeltaTime);
+        //moveVec = transform.TransformDirection(moveVec);
+        rigid.MovePosition(transform.position + moveVec.normalized * player.moveSpeed * Time.smoothDeltaTime);
     }
 }
 
@@ -82,7 +83,8 @@ public class Run : StateComponent, PlayerAction
     public void Action()
     {
         moveVec = new Vector3(player.horizontal, 0, player.vertical);
-        rigid.MovePosition(transform.position + moveVec * player.runSpeed * Time.smoothDeltaTime);
+        //moveVec = transform.TransformDirection(moveVec);
+        rigid.MovePosition(transform.position + moveVec.normalized * player.runSpeed * Time.smoothDeltaTime);
     }
 }
 
@@ -99,6 +101,8 @@ public class PlayerController : StateComponent
     public PlayerAction playerAction;
     public Animator anim;
 
+    Quaternion originRotation;
+
     new void Start()
     {
         base.Start();
@@ -111,6 +115,8 @@ public class PlayerController : StateComponent
         playerAction = GetComponent<Idle>();
         player.state = Player.State.Idle;
         player.rigid = GetComponent<Rigidbody>();
+
+        originRotation = transform.rotation;
     }
 
     void Update()
@@ -144,19 +150,46 @@ public class PlayerController : StateComponent
 
     void InputKey()
     {
-        player.vertical = Input.GetAxis("Vertical");
-        player.horizontal = Input.GetAxis("Horizontal");
+        player.vertical = Input.GetAxisRaw("Vertical");
+        player.horizontal = Input.GetAxisRaw("Horizontal");
+
+        if (player.state == Player.State.Idle || player.state == Player.State.Move)
+            MoveInput();
+
+        if (player.state == Player.State.Move || player.state == Player.State.Run)
+            RunInput();
+           
+        //if (Input.GetMouseButton(0))
+        //{
+        //    float a = player.vertical;
+        //    ChangeComponent(GetComponent<Attack>(), Player.State.Attack);
+        //}
+    }
+
+    void MoveInput()
+    {
+        if (player.vertical != 0 && player.horizontal != 0)
+        {
+            float dir = player.vertical * player.horizontal;
+            
+            if (originRotation == transform.rotation)
+                transform.rotation = originRotation * Quaternion.Euler(new Vector3(0, dir * 45, 0)); ;
+        }
+        else
+        {
+            if (originRotation != transform.rotation)
+                transform.rotation = originRotation;
+        }
+
 
         if (player.vertical != 0 || player.horizontal != 0)
         {
             ChangeComponent(GetComponent<Move>(), Player.State.Move);
-            //ChangeComponent(GetComponent<Move>());
-            //ChangeState(Player.State.Move);
 
             anim.SetFloat("Vertical", player.vertical);
             anim.SetFloat("Horizontal", player.horizontal);
 
-            if(player.vertical != 0)
+            if (player.vertical != 0)
             {
                 anim.SetBool("ISMoveForward", true);
                 return;
@@ -165,121 +198,16 @@ public class PlayerController : StateComponent
             anim.SetBool("ISMoveForward", false);
         }
 
-        if (!Input.GetButton("Horizontal"))
-        {
-            player.horizontal = 0;
-        }
-
-        if (!Input.GetButton("Vertical"))
-        {
-            player.vertical = 0;
-        }
-
         if (player.vertical == 0 && player.horizontal == 0)
-        {
-            ChangeComponent(GetComponent<Move>(), Player.State.Idle);
-            //ChangeComponent(GetComponent<Idle>());
-            //ChangeState(Player.State.Idle);
-        }
-
-        if (player.vertical > 0 && Input.GetKey(KeyCode.LeftShift))
-        {
-            ChangeComponent(GetComponent<Move>(), Player.State.Run);
-            //ChangeComponent(GetComponent<Run>());
-            //ChangeState(Player.State.Run);
-        }
-           
-        if (Input.GetMouseButton(0))
-        {
-            ChangeComponent(GetComponent<Move>(), Player.State.Attack);
-            //ChangeComponent(GetComponent<Attack>());
-            //ChangeState(Player.State.Attack);
-        }
+            ChangeComponent(GetComponent<Idle>(), Player.State.Idle);
     }
 
-    void MoveAnimCtrl()
+    void RunInput()
     {
-        //if(player.vertical)
+        if (player.vertical > 0 && Input.GetKey(KeyCode.LeftShift))
+            ChangeComponent(GetComponent<Run>(), Player.State.Run);
+
+        if (Input.GetKeyUp(KeyCode.LeftShift))
+            ChangeComponent(GetComponent<Move>(), Player.State.Move);
     }
-
-    //void ChangeState(PlayerState nextState)
-    //{
-    //    state = nextState;
-
-    //    anim.SetBool("IsIdle", false);
-    //    anim.SetBool("IsMoveForward", false);
-    //    anim.SetBool("IsMoveSide", false);
-    //    anim.SetBool("IsAttack", false);
-    //    anim.SetBool("IsHit", false);
-    //    anim.SetBool("IsDie", false);
-
-    //    switch(state)
-    //    {
-    //        case PlayerState.Idle: anim.SetBool("IsIdle", true); break;
-    //        case PlayerState.MoveForward: anim.SetBool("IsMoveForward", true); break;
-    //        case PlayerState.MoveSide: anim.SetBool("IsMoveSide", true); break;
-    //        case PlayerState.Attack: anim.SetBool("IsAttack", true); break;
-    //        case PlayerState.Hit: anim.SetBool("IsHit", true); break;
-    //        case PlayerState.Die: anim.SetBool("IsDie", true); break;
-    //    }
-    //}
-
-    //void MoveForward()
-    //{
-    //    //ChangeState();
-
-    //    moveSpeed = 0;
-
-        
-    //    float moveZ = Input.GetAxis("Vertical");
-    //    anim.SetFloat("Move", moveZ);
-
-    //    Vector3 dir = new Vector3(0, 0, moveZ).normalized;
-
-    //    if (moveZ > 0)
-    //    {
-    //        moveSpeed = player.runSpeed;
-    //    }
-    //    else if (moveZ < 0)
-    //    {
-    //        moveSpeed = player.moveSpeed;
-    //    }
-           
-    //    rigid.MovePosition(transform.position + dir * moveSpeed * Time.smoothDeltaTime);
-    //}
-
-    //void MoveSide()
-    //{
-    //    float moveX = Input.GetAxis("Horizontal");
-
-    //    if (moveX > 0)
-    //    {
-    //        moveSpeed = player.runSpeed;
-    //    }
-    //    else if (moveX < 0)
-    //    {
-    //        moveSpeed = player.moveSpeed;
-    //    }
-
-    //    Vector3 dir = new Vector3(moveX, 0, 0).normalized;
-
-    //    rigid.MovePosition(transform.position + dir * moveSpeed * Time.smoothDeltaTime);
-    //}
-
-    //void Attack()
-    //{
-    //    if (Input.GetMouseButton(0) && !anim.GetBool("IsAttack"))
-    //    {
-    //        //ChangeState();
-    //        anim.SetBool("IsAttack", true);
-    //    }
-    //}
-
-    //void Idle()
-    //{
-    //    if(state == PlayerState.Idle)
-    //    {
-
-    //    }
-    //}
 }
