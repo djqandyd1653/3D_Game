@@ -9,7 +9,8 @@ public class Player : MonoBehaviour
         Idle,
         Move,
         Run,
-        Attack,
+        Attack01,
+        Attack02,
         Hit,
         Die
     }
