@@ -1447,7 +1447,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 854b2e011a0ab6c49974e5c2791a8b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hp: 0
+  hp: 100
   state: 0
   stamina: 0
   maxStamina: 100
@@ -1456,8 +1456,8 @@ MonoBehaviour:
   attackPower: 0
   vertical: 0
   horizontal: 0
-  moveSpeed: 15
-  runSpeed: 30
+  moveSpeed: 20
+  runSpeed: 40
   rotateSpeed: 0
   rigid: {fileID: 0}
 --- !u!95 &1752774142 stripped

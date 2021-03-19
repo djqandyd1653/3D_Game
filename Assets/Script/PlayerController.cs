@@ -100,7 +100,28 @@ public class Run : StateComponent, PlayerAction
     }
 }
 
-public class Attack : MonoBehaviour, PlayerAction
+public class Attack : StateComponent, PlayerAction
+{
+    public void Action()
+    {
+        
+    }
+}
+
+public class Hit : StateComponent, PlayerAction
+{
+    new void Start()
+    {
+        base.Start();
+    }
+
+    public void Action()
+    {
+        player.hp--;
+    }
+}
+
+public class Die : StateComponent, PlayerAction
 {
     public void Action()
     {
@@ -123,6 +144,7 @@ public class PlayerController : StateComponent
         gameObject.AddComponent<Move>();
         gameObject.AddComponent<Run>();
         gameObject.AddComponent<Attack>();
+        gameObject.AddComponent<Hit>();
 
         playerAction = GetComponent<Idle>();
         player.state = Player.State.Idle;
@@ -158,6 +180,7 @@ public class PlayerController : StateComponent
 
         string strCurrState = "Is" + state.ToString();
         anim.SetBool(strCurrState, true);
+        anim.SetTrigger(strCurrState);
     }
 
     void InputKey()
@@ -174,6 +197,7 @@ public class PlayerController : StateComponent
         if (player.state != Player.State.Hit || player.state != Player.State.Die)
             AttackInput();
 
+        HitInput(); // OnCollisionEnter에 사용예정
     }
 
     void MoveRotation()
@@ -184,7 +208,7 @@ public class PlayerController : StateComponent
 
             if (originRotation == transform.rotation)
                 transform.rotation = originRotation * Quaternion.Euler(new Vector3(0, dir * 45, 0)); ;
-        }
+        }   
         else
         {
             if (originRotation != transform.rotation)
@@ -243,9 +267,21 @@ public class PlayerController : StateComponent
         }
 
         if (anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.Attack02") &&
-            anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 0.9f)
+            anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1f)
             ChangeComponent(GetComponent<Idle>(), Player.State.Idle);
-            
     }
 
+    void HitInput()
+    {
+        if(Input.GetKeyDown(KeyCode.P) && player.state != Player.State.Hit)
+        {
+            ChangeComponent(GetComponent<Hit>(), Player.State.Hit);
+        }
+
+        if (anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.GetHit") &&
+            anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 0.9f)
+        {
+            ChangeComponent(GetComponent<Idle>(), Player.State.Idle);
+        }
+    }
 }
