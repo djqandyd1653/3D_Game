@@ -135,6 +135,7 @@ public class PlayerController : StateComponent
     public Animator anim;
 
     Quaternion originRotation;
+    Quaternion originCameraRotation;
 
     new void Start()
     {
@@ -151,6 +152,7 @@ public class PlayerController : StateComponent
         player.rigid = GetComponent<Rigidbody>();
 
         originRotation = transform.rotation;
+        originCameraRotation = Camera.main.transform.rotation;
     }
 
     void Update()
@@ -160,6 +162,10 @@ public class PlayerController : StateComponent
         //Attack();
         playerAction.Action();
         InputKey();
+        Rotate();
+
+        if (Input.GetKeyDown(KeyCode.O))
+            Debug.Log(transform.forward);
     }
 
     void ChangeComponent(PlayerAction newAction, Player.State state)
@@ -253,10 +259,10 @@ public class PlayerController : StateComponent
 
     void AttackInput()
     {
-        if (Input.GetMouseButtonDown(0) && player.state != Player.State.Attack01)
+        if (Input.GetMouseButtonDown(0) && player.state != Player.State.Attack01 && player.state != Player.State.Attack02)
             ChangeComponent(GetComponent<Attack>(), Player.State.Attack01);
 
-        if (anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.Attack01"))
+        if (anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.Attack01") && player.state == Player.State.Attack01)
         {
             if (anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 0.9f)
                 ChangeComponent(GetComponent<Idle>(), Player.State.Idle);
@@ -283,5 +289,26 @@ public class PlayerController : StateComponent
         {
             ChangeComponent(GetComponent<Idle>(), Player.State.Idle);
         }
+    }
+
+    void Rotate()
+    {
+        float mouseX = Input.GetAxis("Mouse X");
+        transform.Rotate(Vector3.up * player.rotateSpeed * mouseX);
+
+        //if(player.vertical != 0 && player.horizontal != 0)
+        //{
+        //    if (Camera.main.transform.rotation == originCameraRotation)
+        //        Camera.main.transform.Rotate(transform.up * 45);
+        //}
+        //else
+        //{
+        //    if (Camera.main.transform.rotation != originCameraRotation)
+        //        Camera.main.transform.rotation = originCameraRotation;
+        //}
+
+
+        if (player.vertical == 0 || player.horizontal == 0)
+            originRotation = transform.rotation;
     }
 }
