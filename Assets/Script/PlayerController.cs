@@ -19,14 +19,11 @@ public class StateComponent : MonoBehaviour
 
 public class Idle : StateComponent, PlayerAction
 {
-    //Player player;
     float remainTime;   // 스태미나 충전까지 남은 시간
 
     new void Start()
     {
         base.Start();
-
-        //player = GetComponent<Player>();
         remainTime = 0.0f;
     }
 
@@ -63,13 +60,6 @@ public class Move : StateComponent, PlayerAction
 
     public void Action()
     {
-        if(player.vertical != 0 && player.horizontal != 0)
-        {
-            moveVec = transform.forward * player.vertical;
-            rigid.MovePosition(transform.position + moveVec.normalized * player.moveSpeed * Time.smoothDeltaTime);
-            return;
-        }
-
         moveVec = transform.forward * player.vertical + transform.right * player.horizontal;
         rigid.MovePosition(transform.position + moveVec.normalized * player.moveSpeed * Time.smoothDeltaTime);
     }
@@ -88,13 +78,6 @@ public class Run : StateComponent, PlayerAction
 
     public void Action()
     {
-        if (player.vertical != 0 && player.horizontal != 0)
-        {
-            moveVec = transform.forward * player.vertical;
-            rigid.MovePosition(transform.position + moveVec.normalized * player.runSpeed * Time.smoothDeltaTime);
-            return;
-        }
-
         moveVec = transform.forward * player.vertical + transform.right * player.horizontal;
         rigid.MovePosition(transform.position + moveVec.normalized * player.runSpeed * Time.smoothDeltaTime);
     }
@@ -134,9 +117,6 @@ public class PlayerController : StateComponent
     public PlayerAction playerAction;
     public Animator anim;
 
-    Quaternion originRotation;
-    Quaternion originCameraRotation;
-
     new void Start()
     {
         base.Start();
@@ -150,22 +130,13 @@ public class PlayerController : StateComponent
         playerAction = GetComponent<Idle>();
         player.state = Player.State.Idle;
         player.rigid = GetComponent<Rigidbody>();
-
-        originRotation = transform.rotation;
-        originCameraRotation = Camera.main.transform.rotation;
     }
 
     void Update()
     {
-        //MoveForward();
-        //MoveSide();
-        //Attack();
         playerAction.Action();
         InputKey();
         Rotate();
-
-        if (Input.GetKeyDown(KeyCode.O))
-            Debug.Log(transform.forward);
     }
 
     void ChangeComponent(PlayerAction newAction, Player.State state)
@@ -212,20 +183,18 @@ public class PlayerController : StateComponent
         {
             float dir = player.vertical * player.horizontal;
 
-            if (originRotation == transform.rotation)
-                transform.rotation = originRotation * Quaternion.Euler(new Vector3(0, dir * 45, 0)); ;
+            if(transform.GetChild(0).transform.rotation == transform.rotation)
+                transform.GetChild(0).transform.rotation *= Quaternion.Euler(new Vector3(0, dir * 45, 0));
         }   
         else
         {
-            if (originRotation != transform.rotation)
-                transform.rotation = originRotation;
+            if (transform.GetChild(0).transform.rotation != transform.rotation)
+                transform.GetChild(0).transform.rotation = transform.rotation;
         }
     }
 
     void MoveInput()
     {
-        MoveRotation();
-
         if (player.vertical != 0 || player.horizontal != 0)
         {
             ChangeComponent(GetComponent<Move>(), Player.State.Move);
@@ -248,8 +217,6 @@ public class PlayerController : StateComponent
 
     void RunInput()
     {
-        MoveRotation();
-
         if (player.vertical > 0 && Input.GetKey(KeyCode.LeftShift))
             ChangeComponent(GetComponent<Run>(), Player.State.Run);
 
@@ -293,22 +260,9 @@ public class PlayerController : StateComponent
 
     void Rotate()
     {
+        MoveRotation();
+
         float mouseX = Input.GetAxis("Mouse X");
         transform.Rotate(Vector3.up * player.rotateSpeed * mouseX);
-
-        //if(player.vertical != 0 && player.horizontal != 0)
-        //{
-        //    if (Camera.main.transform.rotation == originCameraRotation)
-        //        Camera.main.transform.Rotate(transform.up * 45);
-        //}
-        //else
-        //{
-        //    if (Camera.main.transform.rotation != originCameraRotation)
-        //        Camera.main.transform.rotation = originCameraRotation;
-        //}
-
-
-        if (player.vertical == 0 || player.horizontal == 0)
-            originRotation = transform.rotation;
     }
 }
