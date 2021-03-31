@@ -147,15 +147,12 @@ public class PlayerController : StateComponent
 
     void ChangeState(Player.State state)
     {
-        foreach(Player.State arrState in (Player.State[])System.Enum.GetValues(typeof(Player.State)))
-        {
-            string strTempState = "Is" + arrState.ToString();
-            anim.SetBool(strTempState, false);
-        }
+        string strCurrState = "Is" + player.state.ToString();
+        anim.SetBool(strCurrState, false);
 
         player.state = state;
 
-        string strCurrState = "Is" + state.ToString();
+        strCurrState = "Is" + state.ToString();
         anim.SetBool(strCurrState, true);
         anim.SetTrigger(strCurrState);
     }

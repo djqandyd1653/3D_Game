@@ -41,32 +41,31 @@ public class FishAI : MonoBehaviour
         remainTime -= Time.deltaTime;
         if (remainTime < 0)
         {
-            MoveChange(Random.Range(0, 3));
+            MoveChange((FishState)Random.Range(0, 3));
             remainTime = stateChangeTime;
         }
             
         Move();
     }
 
-    void MoveChange(int num)
+    void MoveChange(FishState nextState)
     {
         anim.SetBool("Left", false);
         anim.SetBool("Right", false);
         anim.SetBool("Forward", false);
 
-        switch(num)
+        state = nextState;
+
+        switch(nextState)
         {
-            case 0:
+            case FishState.Left:
                 anim.SetBool("Left", true);
-                state = FishState.Left;
                 break;
-            case 1:
+            case FishState.Right:
                 anim.SetBool("Right", true);
-                state = FishState.Right;
                 break;
-            case 2:
+            case FishState.Forward:
                 anim.SetBool("Forward", true);
-                state = FishState.Forward;
                 break;
         }
     }
@@ -90,19 +89,16 @@ public class FishAI : MonoBehaviour
     {
         ContactPoint point = collision.contacts[0];
 
-        angle = Vector3.Dot(-point.normal, transform.right);
+        angle = Vector3.Dot(point.normal, transform.right);
         if (angle > 0)
-            MoveChange(0);
-        else if (angle < 0)
-            MoveChange(1);
-        else
-            MoveChange(Random.Range(0, 2));
+            MoveChange(FishState.Right);
+        else if (angle <= 0)
+            MoveChange(FishState.Left);
 
         int randNum = Random.Range(3, 6);
         StartCoroutine(CollisionCoroutine(randNum));
         
         remainTime = stateChangeTime;
-        //transform.position = new Vector3(transform.position.x, 0, transform.position.z);
     }
 
     IEnumerator CollisionCoroutine(int randNum)
