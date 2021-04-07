@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.5647569, g: 0.6337676, b: 0.7115473, a: 1}
+  m_IndirectSpecularColor: {r: 0.56475663, g: 0.6337671, b: 0.71154505, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -468,8 +468,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b867277e9f793524f8da3e66194a5036, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  anim: {fileID: 535692758}
+  hp: 0
+  maxHp: 0
+  attackPower: 0
+  attackSpeed: 0
+  moveSpeed: 0
+  rotateSpeed: 0
+  armor: 0
   state: 0
+  grade: 0
 --- !u!136 &535692756
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -500,12 +507,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 112
   m_CollisionDetection: 0
---- !u!95 &535692758 stripped
-Animator:
-  m_CorrespondingSourceObject: {fileID: 9500000, guid: 5a35c5f0a89b9654d897ccd7c8f81bd0,
-    type: 3}
-  m_PrefabInstance: {fileID: 1004403870}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &568152212
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1652,7 +1653,7 @@ PrefabInstance:
     - target: {fileID: 8422892626600285392, guid: 214e08cd5e5d74c458e2a81b7ec2c84c,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8422892626600285392, guid: 214e08cd5e5d74c458e2a81b7ec2c84c,
         type: 3}
