@@ -17,37 +17,7 @@ public class StateComponent : MonoBehaviour
     }
 }
 
-public class Idle : StateComponent, PlayerAction
-{
-    float remainTime;   // 스태미나 충전까지 남은 시간
-
-    new void Start()
-    {
-        base.Start();
-        remainTime = 0.0f;
-    }
-
-    public void Action()
-    {
-        ChargeStamina();
-    }
-
-    void ChargeStamina()
-    {
-        if (player.stamina >= player.maxStamina)
-            return;
-        
-        remainTime += Time.deltaTime;
-
-        if (remainTime >= player.staminaChargeCycle)
-        {
-            remainTime = 0.0f;
-            player.stamina = Mathf.Clamp(player.stamina + player.staminaFillAmount, 0, player.maxStamina);
-        }
-    }
-}
-
-public class Move : StateComponent, PlayerAction
+public class PlayerMove : StateComponent, PlayerAction
 {
     Rigidbody rigid;
     Vector3 moveVec;
@@ -65,7 +35,7 @@ public class Move : StateComponent, PlayerAction
     }
 }
 
-public class Run : StateComponent, PlayerAction
+public class PlayerRun : StateComponent, PlayerAction
 {
     Rigidbody rigid;
     Vector3 moveVec;
@@ -83,7 +53,7 @@ public class Run : StateComponent, PlayerAction
     }
 }
 
-public class Attack : StateComponent, PlayerAction
+public class PlayerAttack : StateComponent, PlayerAction
 {
     public void Action()
     {
@@ -91,7 +61,7 @@ public class Attack : StateComponent, PlayerAction
     }
 }
 
-public class Hit : StateComponent, PlayerAction
+public class PlayerHit : StateComponent, PlayerAction
 {
     new void Start()
     {
@@ -104,7 +74,7 @@ public class Hit : StateComponent, PlayerAction
     }
 }
 
-public class Die : StateComponent, PlayerAction
+public class PlayerDie : StateComponent, PlayerAction
 {
     public void Action()
     {
@@ -117,17 +87,47 @@ public class PlayerController : StateComponent
     public PlayerAction playerAction;
     public Animator anim;
 
+    private class Idle : StateComponent, PlayerAction
+    {
+        float remainTime;   // 스태미나 충전까지 남은 시간
+
+        new void Start()
+        {
+            base.Start();
+            remainTime = 0.0f;
+        }
+
+        public void Action()
+        {
+            ChargeStamina();
+        }
+
+        void ChargeStamina()
+        {
+            if (player.stamina >= player.maxStamina)
+                return;
+
+            remainTime += Time.deltaTime;
+
+            if (remainTime >= player.staminaChargeCycle)
+            {
+                remainTime = 0.0f;
+                player.stamina = Mathf.Clamp(player.stamina + player.staminaFillAmount, 0, player.maxStamina);
+            }
+        }
+    }
+
     new void Start()
     {
         base.Start();
 
         gameObject.AddComponent<Idle>();
-        gameObject.AddComponent<Move>();
-        gameObject.AddComponent<Run>();
-        gameObject.AddComponent<Attack>();
-        gameObject.AddComponent<Hit>();
+        gameObject.AddComponent<PlayerMove>();
+        gameObject.AddComponent<PlayerRun>();
+        gameObject.AddComponent<PlayerAttack>();
+        gameObject.AddComponent<PlayerHit>();
 
-        playerAction = GetComponent<Idle>();
+        playerAction = GetComponent<PlayerIdle>();
         player.state = Player.State.Idle;
         player.rigid = GetComponent<Rigidbody>();
     }
@@ -194,7 +194,7 @@ public class PlayerController : StateComponent
     {
         if (player.vertical != 0 || player.horizontal != 0)
         {
-            ChangeComponent(GetComponent<Move>(), Player.State.Move);
+            ChangeComponent(GetComponent<PlayerMove>(), Player.State.Move);
 
             anim.SetFloat("Vertical", player.vertical);
             anim.SetFloat("Horizontal", player.horizontal);
@@ -209,27 +209,27 @@ public class PlayerController : StateComponent
         }
 
         if (player.vertical == 0 && player.horizontal == 0)
-            ChangeComponent(GetComponent<Idle>(), Player.State.Idle);
+            ChangeComponent(GetComponent<PlayerIdle>(), Player.State.Idle);
     }
 
     void RunInput()
     {
         if (player.vertical > 0 && Input.GetKey(KeyCode.LeftShift))
-            ChangeComponent(GetComponent<Run>(), Player.State.Run);
+            ChangeComponent(GetComponent<PlayerRun>(), Player.State.Run);
 
         if (Input.GetKeyUp(KeyCode.LeftShift) || player.vertical <= 0)
-            ChangeComponent(GetComponent<Move>(), Player.State.Move);
+            ChangeComponent(GetComponent<PlayerMove>(), Player.State.Move);
     }
 
     void AttackInput()
     {
         if (Input.GetMouseButtonDown(0) && player.state != Player.State.Attack01 && player.state != Player.State.Attack02)
-            ChangeComponent(GetComponent<Attack>(), Player.State.Attack01);
+            ChangeComponent(GetComponent<PlayerAttack>(), Player.State.Attack01);
 
         if (anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.Attack01") && player.state == Player.State.Attack01)
         {
             if (anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 0.9f)
-                ChangeComponent(GetComponent<Idle>(), Player.State.Idle);
+                ChangeComponent(GetComponent<PlayerIdle>(), Player.State.Idle);
 
             else if (anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 0.4f &&
                 Input.GetMouseButtonDown(0))
@@ -238,20 +238,20 @@ public class PlayerController : StateComponent
 
         if (anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.Attack02") &&
             anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1f)
-            ChangeComponent(GetComponent<Idle>(), Player.State.Idle);
+            ChangeComponent(GetComponent<PlayerIdle>(), Player.State.Idle);
     }
 
     void HitInput()
     {
         if(Input.GetKeyDown(KeyCode.P) && player.state != Player.State.Hit)
         {
-            ChangeComponent(GetComponent<Hit>(), Player.State.Hit);
+            ChangeComponent(GetComponent<PlayerHit>(), Player.State.Hit);
         }
 
         if (anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.GetHit") &&
             anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 0.9f)
         {
-            ChangeComponent(GetComponent<Idle>(), Player.State.Idle);
+            ChangeComponent(GetComponent<PlayerIdle>(), Player.State.Idle);
         }
     }
 

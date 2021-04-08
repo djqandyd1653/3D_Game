@@ -2,43 +2,44 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum AI_State
+public interface SkeletonAction
 {
-    Idle,
-    Patrol,
-    Trace,
-    Attack,
-    Hide,
+    void Action();
+    //void ChangeState();
+}
+
+public class Idle : Enemy, SkeletonAction
+{
+    public void Action()
+    {
+
+    }
 }
 
 public class Skeleton : Enemy
 {
     public Animator anim;
 
-    [SerializeField]
-    AI_State nextState = AI_State.Idle;
+    //Vector3 targetPos;
+    //float patrolSpeed = 2f;
+    //float patrolRotation = 3f;
 
-    // Patrol
-    Vector3 targetPos;
-    float patrolSpeed = 2f;
-    float patrolRotation = 3f;
+    //// Trace
+    //float traceSpeed = 4;
 
-    // Trace
-    float traceSpeed = 4;
+    //// Attack
+    //float attackRotation = 1.5f;
 
-    // Attack
-    float attackRotation = 1.5f;
+    //GameObject player;
+    //Camera eye;
 
-    GameObject player;
-    Camera eye;
-
-    void RGB()
-    {
-        patrolSpeed *= 3;
-        patrolRotation *= 3;
-        traceSpeed *= 3;
-        attackRotation *= 3;
-    }
+    //void RGB()
+    //{
+    //    patrolSpeed *= 3;
+    //    patrolRotation *= 3;
+    //    traceSpeed *= 3;
+    //    attackRotation *= 3;
+    //}
 
     void Start()
     {
