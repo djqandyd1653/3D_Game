@@ -2,23 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public interface SkeletonAction
-{
-    void Action();
-    //void ChangeState();
-}
-
-public class Idle : Enemy, SkeletonAction
-{
-    public void Action()
-    {
-
-    }
-}
-
-public class Skeleton : Enemy
+public class Skeleton : Monster
 {
     public Animator anim;
+    private SkeletonAction skeletonAction;
+    private Monster monster;
+    private GameObject target;
 
     //Vector3 targetPos;
     //float patrolSpeed = 2f;
@@ -41,6 +30,84 @@ public class Skeleton : Enemy
     //    attackRotation *= 3;
     //}
 
+    private interface SkeletonAction
+    {
+        void Action();
+        //void ChangeState();
+    }
+
+    protected class StateComponent : MonoBehaviour
+    {
+        protected Skeleton skeleton;
+        protected Monster monster;
+
+        void Start()
+        {
+            skeleton = GetComponent<Skeleton>();
+            monster = skeleton.monster;
+        }
+    }
+
+    private class Idle : StateComponent, SkeletonAction
+    {
+        public void Action()
+        {
+
+        }
+    }
+
+    private class Trace : StateComponent, SkeletonAction
+    {
+        public void Action()
+        {
+            
+        }
+    }
+
+    private class Patrol : StateComponent, SkeletonAction
+    {
+        public void Action()
+        {
+
+        }
+
+        void SearchTarget()
+        {
+            if (skeleton.target != null)
+                return;
+        }
+
+        void SetTarget(GameObject target)
+        {
+            if (skeleton.target == null)
+                skeleton.target = target;
+        }
+    }
+
+    private class Attack : StateComponent, SkeletonAction
+    {
+        public void Action()
+        {
+
+        }
+    }
+
+    private class Hit : StateComponent, SkeletonAction
+    {
+        public void Action()
+        {
+
+        }
+    }
+
+    private class Die : StateComponent, SkeletonAction
+    {
+        public void Action()
+        {
+
+        }
+    }
+
     void Start()
     {
         //eye = transform.GetComponentInChildren<Camera>();
@@ -56,15 +123,15 @@ public class Skeleton : Enemy
 
         armor = 5f;
 
-        state = Enemy.State.Idle;
-        grade = Enemy.Grade.Common;
+        state = Monster.State.Idle;
+        grade = Monster.Grade.Common;
 
         anim = GetComponent<Animator>();
     }
 
     void Update()
     {
-        
+        skeletonAction.Action();
     }
 
     void ChangeState()

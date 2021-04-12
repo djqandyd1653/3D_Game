@@ -2,90 +2,28 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public interface PlayerAction
-{
-    void Action();
-}
-
-public class StateComponent : MonoBehaviour
-{
-    protected Player player;
-
-    protected void Start()
-    {
-        player = GetComponent<Player>();
-    }
-}
-
-public class PlayerMove : StateComponent, PlayerAction
-{
-    Rigidbody rigid;
-    Vector3 moveVec;
-
-    new void Start()
-    {
-        base.Start();
-        rigid = player.rigid;
-    }
-
-    public void Action()
-    {
-        moveVec = transform.forward * player.vertical + transform.right * player.horizontal;
-        rigid.MovePosition(transform.position + moveVec.normalized * player.moveSpeed * Time.smoothDeltaTime);
-    }
-}
-
-public class PlayerRun : StateComponent, PlayerAction
-{
-    Rigidbody rigid;
-    Vector3 moveVec;
-
-    new void Start()
-    {
-        base.Start();
-        rigid = player.rigid;
-    }
-
-    public void Action()
-    {
-        moveVec = transform.forward * player.vertical + transform.right * player.horizontal;
-        rigid.MovePosition(transform.position + moveVec.normalized * player.runSpeed * Time.smoothDeltaTime);
-    }
-}
-
-public class PlayerAttack : StateComponent, PlayerAction
-{
-    public void Action()
-    {
-        
-    }
-}
-
-public class PlayerHit : StateComponent, PlayerAction
-{
-    new void Start()
-    {
-        base.Start();
-    }
-
-    public void Action()
-    {
-        player.hp--;
-    }
-}
-
-public class PlayerDie : StateComponent, PlayerAction
-{
-    public void Action()
-    {
-        
-    }
-}
-
-public class PlayerController : StateComponent
+public class PlayerController : MonoBehaviour
 {
     public PlayerAction playerAction;
     public Animator anim;
+    public Player player;
+
+    public interface PlayerAction
+    {
+        void Action();
+    }
+
+    protected class StateComponent : MonoBehaviour
+    {
+        PlayerController playerCtrl;
+        protected Player player;
+
+        protected void Start()
+        {
+            playerCtrl = GetComponent<PlayerController>();
+            player = playerCtrl.player;
+        }
+    }
 
     private class Idle : StateComponent, PlayerAction
     {
@@ -104,6 +42,7 @@ public class PlayerController : StateComponent
 
         void ChargeStamina()
         {
+            
             if (player.stamina >= player.maxStamina)
                 return;
 
@@ -117,17 +56,81 @@ public class PlayerController : StateComponent
         }
     }
 
-    new void Start()
+    private class Move : StateComponent, PlayerAction
     {
-        base.Start();
+        Rigidbody rigid;
+        Vector3 moveVec;
 
+        new void Start()
+        {
+            base.Start();
+            rigid = player.rigid;
+        }
+
+        public void Action()
+        {
+            moveVec = transform.forward * player.vertical + transform.right * player.horizontal;
+            rigid.MovePosition(transform.position + moveVec.normalized * player.moveSpeed * Time.smoothDeltaTime);
+        }
+    }
+
+    private class Run : StateComponent, PlayerAction
+    {
+        Rigidbody rigid;
+        Vector3 moveVec;
+
+        new void Start()
+        {
+            base.Start();
+            rigid = player.rigid;
+        }
+
+        public void Action()
+        {
+            moveVec = transform.forward * player.vertical + transform.right * player.horizontal;
+            rigid.MovePosition(transform.position + moveVec.normalized * player.runSpeed * Time.smoothDeltaTime);
+        }
+    }
+
+    private class Attack : StateComponent, PlayerAction
+    {
+        public void Action()
+        {
+
+        }
+    }
+
+    private class Hit : StateComponent, PlayerAction
+    {
+        new void Start()
+        {
+            base.Start();
+        }
+
+        public void Action()
+        {
+            player.hp--;
+        }
+    }
+
+    private class Die : StateComponent, PlayerAction
+    {
+        public void Action()
+        {
+
+        }
+    }
+
+    void Start()
+    {
         gameObject.AddComponent<Idle>();
-        gameObject.AddComponent<PlayerMove>();
-        gameObject.AddComponent<PlayerRun>();
-        gameObject.AddComponent<PlayerAttack>();
-        gameObject.AddComponent<PlayerHit>();
+        gameObject.AddComponent<Move>();
+        gameObject.AddComponent<Run>();
+        gameObject.AddComponent<Attack>();
+        gameObject.AddComponent<Hit>();
 
-        playerAction = GetComponent<PlayerIdle>();
+        player = GetComponent<Player>();
+        playerAction = GetComponent<Idle>();
         player.state = Player.State.Idle;
         player.rigid = GetComponent<Rigidbody>();
     }
@@ -194,7 +197,7 @@ public class PlayerController : StateComponent
     {
         if (player.vertical != 0 || player.horizontal != 0)
         {
-            ChangeComponent(GetComponent<PlayerMove>(), Player.State.Move);
+            ChangeComponent(GetComponent<Move>(), Player.State.Move);
 
             anim.SetFloat("Vertical", player.vertical);
             anim.SetFloat("Horizontal", player.horizontal);
@@ -209,27 +212,27 @@ public class PlayerController : StateComponent
         }
 
         if (player.vertical == 0 && player.horizontal == 0)
-            ChangeComponent(GetComponent<PlayerIdle>(), Player.State.Idle);
+            ChangeComponent(GetComponent<Idle>(), Player.State.Idle);
     }
 
     void RunInput()
     {
         if (player.vertical > 0 && Input.GetKey(KeyCode.LeftShift))
-            ChangeComponent(GetComponent<PlayerRun>(), Player.State.Run);
+            ChangeComponent(GetComponent<Run>(), Player.State.Run);
 
         if (Input.GetKeyUp(KeyCode.LeftShift) || player.vertical <= 0)
-            ChangeComponent(GetComponent<PlayerMove>(), Player.State.Move);
+            ChangeComponent(GetComponent<Move>(), Player.State.Move);
     }
 
     void AttackInput()
     {
         if (Input.GetMouseButtonDown(0) && player.state != Player.State.Attack01 && player.state != Player.State.Attack02)
-            ChangeComponent(GetComponent<PlayerAttack>(), Player.State.Attack01);
+            ChangeComponent(GetComponent<Attack>(), Player.State.Attack01);
 
         if (anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.Attack01") && player.state == Player.State.Attack01)
         {
             if (anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 0.9f)
-                ChangeComponent(GetComponent<PlayerIdle>(), Player.State.Idle);
+                ChangeComponent(GetComponent<Idle>(), Player.State.Idle);
 
             else if (anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 0.4f &&
                 Input.GetMouseButtonDown(0))
@@ -238,20 +241,20 @@ public class PlayerController : StateComponent
 
         if (anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.Attack02") &&
             anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1f)
-            ChangeComponent(GetComponent<PlayerIdle>(), Player.State.Idle);
+            ChangeComponent(GetComponent<Idle>(), Player.State.Idle);
     }
 
     void HitInput()
     {
         if(Input.GetKeyDown(KeyCode.P) && player.state != Player.State.Hit)
         {
-            ChangeComponent(GetComponent<PlayerHit>(), Player.State.Hit);
+            ChangeComponent(GetComponent<Hit>(), Player.State.Hit);
         }
 
         if (anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.GetHit") &&
             anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 0.9f)
         {
-            ChangeComponent(GetComponent<PlayerIdle>(), Player.State.Idle);
+            ChangeComponent(GetComponent<Idle>(), Player.State.Idle);
         }
     }
 

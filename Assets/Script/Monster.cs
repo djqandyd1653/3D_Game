@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Enemy : MonoBehaviour
+public class Monster : MonoBehaviour
 {
     public enum State
     {
@@ -10,7 +10,8 @@ public class Enemy : MonoBehaviour
         Trace,
         Patrol,
         Attack,
-        Hit
+        Hit,
+        Die
     }
 
     public enum Grade
@@ -33,8 +34,8 @@ public class Enemy : MonoBehaviour
 
     public float armor;
 
+    public float searchRange;
+
     public State state;
     public Grade grade;
 }
-
-
