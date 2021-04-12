@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.56475663, g: 0.6337671, b: 0.71154505, a: 1}
+  m_IndirectSpecularColor: {r: 0.56475693, g: 0.6337675, b: 0.7115458, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -456,27 +456,6 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 1004403870}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &535692755
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 535692754}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b867277e9f793524f8da3e66194a5036, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  hp: 0
-  maxHp: 0
-  attackPower: 0
-  attackSpeed: 0
-  moveSpeed: 0
-  rotateSpeed: 0
-  armor: 0
-  state: 0
-  grade: 0
 --- !u!136 &535692756
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -1513,6 +1492,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   anim: {fileID: 1752774142}
+  player: {fileID: 0}
 --- !u!54 &1752774145
 Rigidbody:
   m_ObjectHideFlags: 0
