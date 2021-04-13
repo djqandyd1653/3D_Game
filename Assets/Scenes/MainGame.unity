@@ -456,6 +456,12 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 1004403870}
   m_PrefabAsset: {fileID: 0}
+--- !u!95 &535692755 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 9500000, guid: 5a35c5f0a89b9654d897ccd7c8f81bd0,
+    type: 3}
+  m_PrefabInstance: {fileID: 1004403870}
+  m_PrefabAsset: {fileID: 0}
 --- !u!136 &535692756
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -486,6 +492,51 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 112
   m_CollisionDetection: 0
+--- !u!114 &535692759
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 535692754}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78c3d6cd90ccccf4d99a76f93367ae4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hp: 0
+  maxHp: 0
+  attackPower: 0
+  attackSpeed: 0
+  moveSpeed: 0
+  rotateSpeed: 0
+  armor: 0
+  searchRange: 0
+  state: 0
+  grade: 0
+  anim: {fileID: 535692755}
+--- !u!114 &535692760
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 535692754}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e8b441c13a5f2e4d8a8432520fa7c01, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hp: 0
+  maxHp: 0
+  attackPower: 0
+  attackSpeed: 0
+  moveSpeed: 0
+  rotateSpeed: 0
+  armor: 0
+  searchRange: 0
+  state: 0
+  grade: 0
 --- !u!1001 &568152212
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -861,7 +912,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 100078, guid: 5a35c5f0a89b9654d897ccd7c8f81bd0, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 400078, guid: 5a35c5f0a89b9654d897ccd7c8f81bd0, type: 3}
       propertyPath: m_RootOrder
@@ -1463,8 +1514,8 @@ MonoBehaviour:
   attackPower: 0
   vertical: 0
   horizontal: 0
-  moveSpeed: 20
-  runSpeed: 40
+  moveSpeed: 30
+  runSpeed: 60
   rotateSpeed: 10
   rigid: {fileID: 0}
 --- !u!95 &1752774142 stripped

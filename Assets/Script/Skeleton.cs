@@ -2,33 +2,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Skeleton : Monster
+public class Skeleton : MonoBehaviour
 {
     public Animator anim;
+    [SerializeField]
     private SkeletonAction skeletonAction;
     private Monster monster;
     private GameObject target;
-
-    //Vector3 targetPos;
-    //float patrolSpeed = 2f;
-    //float patrolRotation = 3f;
-
-    //// Trace
-    //float traceSpeed = 4;
-
-    //// Attack
-    //float attackRotation = 1.5f;
-
-    //GameObject player;
-    //Camera eye;
-
-    //void RGB()
-    //{
-    //    patrolSpeed *= 3;
-    //    patrolRotation *= 3;
-    //    traceSpeed *= 3;
-    //    attackRotation *= 3;
-    //}
+    private GameObject Commander;
+    private Rigidbody rigid;
 
     private interface SkeletonAction
     {
@@ -60,27 +42,46 @@ public class Skeleton : Monster
     {
         public void Action()
         {
-            
+
         }
     }
 
     private class Patrol : StateComponent, SkeletonAction
     {
+        Vector3 destPos;
+
         public void Action()
         {
-
+            SearchTarget();
         }
 
         void SearchTarget()
         {
-            if (skeleton.target != null)
-                return;
+            //if (skeleton.target != null)
+            //    return;
+
+            //if(destPos == transform.position || destPos == null)
+            //{
+                destPos = transform.position + new Vector3(Random.Range(-3, 4), 0, Random.Range(-3, 4));
+                Debug.Log(destPos);
+            //}
+                
+
+            skeleton.rigid.MovePosition(transform.position + destPos.normalized * monster.moveSpeed * Time.deltaTime);
         }
 
         void SetTarget(GameObject target)
         {
             if (skeleton.target == null)
                 skeleton.target = target;
+
+            
+        }
+
+        private void OnCollisionEnter(Collision collision)
+        {
+            if (collision.gameObject.tag == "Player")
+                gameObject.SetActive(false);
         }
     }
 
@@ -110,23 +111,31 @@ public class Skeleton : Monster
 
     void Start()
     {
-        //eye = transform.GetComponentInChildren<Camera>();
-        //player = GameObject.FindGameObjectWithTag("Player");
-        maxHp = 100f;
-        hp = maxHp;
+        gameObject.AddComponent<Idle>();
+        gameObject.AddComponent<Trace>();
+        gameObject.AddComponent<Patrol>();
+        gameObject.AddComponent<Attack>();
+        gameObject.AddComponent<Hit>();
+        gameObject.AddComponent<Die>();
 
-        attackPower = 3f;
-        attackSpeed = 10f;
-
-        moveSpeed = 10f;
-        rotateSpeed = 10f;
-
-        armor = 5f;
-
-        state = Monster.State.Idle;
-        grade = Monster.Grade.Common;
-
+        skeletonAction = GetComponent<Patrol>();
         anim = GetComponent<Animator>();
+        rigid = GetComponent<Rigidbody>();
+        monster = GetComponent<Monster>();
+
+        monster.maxHp = 100f;
+        monster.hp = monster.maxHp;
+
+        monster.attackPower = 3f;
+        monster.attackSpeed = 10f;
+
+        monster.moveSpeed = 10f;
+        monster.rotateSpeed = 10f;
+
+        monster.armor = 5f;
+
+        monster.state = Monster.State.Idle;
+        monster.grade = Monster.Grade.Common;
     }
 
     void Update()
