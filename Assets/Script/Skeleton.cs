@@ -6,13 +6,13 @@ public class Skeleton : MonoBehaviour
 {
     public Animator anim;
     [SerializeField]
-    private SkeletonAction skeletonAction;
+    private ISkeletonAction skeletonAction;
     private Monster monster;
     private GameObject target;
     private GameObject Commander;
     private Rigidbody rigid;
 
-    private interface SkeletonAction
+    private interface ISkeletonAction
     {
         void Action();
         //void ChangeState();
@@ -23,14 +23,14 @@ public class Skeleton : MonoBehaviour
         protected Skeleton skeleton;
         protected Monster monster;
 
-        void Start()
+        protected void Start()
         {
             skeleton = GetComponent<Skeleton>();
             monster = skeleton.monster;
         }
     }
 
-    private class Idle : StateComponent, SkeletonAction
+    private class Idle : StateComponent, ISkeletonAction
     {
         public void Action()
         {
@@ -38,7 +38,7 @@ public class Skeleton : MonoBehaviour
         }
     }
 
-    private class Trace : StateComponent, SkeletonAction
+    private class Trace : StateComponent, ISkeletonAction
     {
         public void Action()
         {
@@ -46,10 +46,15 @@ public class Skeleton : MonoBehaviour
         }
     }
 
-    private class Patrol : StateComponent, SkeletonAction
+    private class Patrol : StateComponent, ISkeletonAction
     {
         Vector3 destPos;
 
+        new void Start()
+        {
+            base.Start();
+            StartCoroutine("ChangeDestPos");
+        }
         public void Action()
         {
             SearchTarget();
@@ -57,25 +62,20 @@ public class Skeleton : MonoBehaviour
 
         void SearchTarget()
         {
-            //if (skeleton.target != null)
-            //    return;
-
-            //if(destPos == transform.position || destPos == null)
-            //{
-                destPos = transform.position + new Vector3(Random.Range(-3, 4), 0, Random.Range(-3, 4));
-                Debug.Log(destPos);
-            //}
-                
+            if (skeleton.target != null)
+                return;
 
             skeleton.rigid.MovePosition(transform.position + destPos.normalized * monster.moveSpeed * Time.deltaTime);
+
+            RaycastHit hitInfo;
+            //if(Physics.SphereCast(transform.position, 3.0f, Vector3.up, out hitInfo, 0, ))
+
         }
 
         void SetTarget(GameObject target)
         {
             if (skeleton.target == null)
                 skeleton.target = target;
-
-            
         }
 
         private void OnCollisionEnter(Collision collision)
@@ -83,9 +83,19 @@ public class Skeleton : MonoBehaviour
             if (collision.gameObject.tag == "Player")
                 gameObject.SetActive(false);
         }
+
+        IEnumerator ChangeDestPos()
+        {
+            while(true)
+            {
+                destPos = new Vector3(Random.Range(-3, 4), 0, Random.Range(-3, 4));
+                Debug.Log(destPos);
+                yield return new WaitForSeconds(3.0f);
+            }
+        }
     }
 
-    private class Attack : StateComponent, SkeletonAction
+    private class Attack : StateComponent, ISkeletonAction
     {
         public void Action()
         {
@@ -93,7 +103,7 @@ public class Skeleton : MonoBehaviour
         }
     }
 
-    private class Hit : StateComponent, SkeletonAction
+    private class Hit : StateComponent, ISkeletonAction
     {
         public void Action()
         {
@@ -101,7 +111,7 @@ public class Skeleton : MonoBehaviour
         }
     }
 
-    private class Die : StateComponent, SkeletonAction
+    private class Die : StateComponent, ISkeletonAction
     {
         public void Action()
         {
