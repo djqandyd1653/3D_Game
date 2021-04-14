@@ -7,7 +7,7 @@ public class Monster : MonoBehaviour
     public enum State
     {
         Idle,
-        Trace,
+        Chase,
         Patrol,
         Attack,
         Hit,
@@ -34,6 +34,7 @@ public class Monster : MonoBehaviour
 
     public float armor;
 
+    public GameObject target;
     public float searchRange;
 
     public State state;

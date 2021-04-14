@@ -8,7 +8,6 @@ public class Skeleton : MonoBehaviour
     [SerializeField]
     private ISkeletonAction skeletonAction;
     private Monster monster;
-    private GameObject target;
     private GameObject Commander;
     private Rigidbody rigid;
 
@@ -38,11 +37,12 @@ public class Skeleton : MonoBehaviour
         }
     }
 
-    private class Trace : StateComponent, ISkeletonAction
+    private class Chase : StateComponent, ISkeletonAction
     {
         public void Action()
         {
-
+            transform.LookAt(monster.target.transform, Vector3.up);
+            //skeleton.rigid.MovePosition(transform.position + )
         }
     }
 
@@ -62,34 +62,36 @@ public class Skeleton : MonoBehaviour
 
         void SearchTarget()
         {
-            if (skeleton.target != null)
-                return;
-
-            skeleton.rigid.MovePosition(transform.position + destPos.normalized * monster.moveSpeed * Time.deltaTime);
-
-            RaycastHit hitInfo;
-            //if(Physics.SphereCast(transform.position, 3.0f, Vector3.up, out hitInfo, 0, ))
-
+            transform.LookAt(destPos, Vector3.up);
+            skeleton.rigid.MovePosition(transform.position + transform.forward * monster.moveSpeed * Time.deltaTime);
+            
+            Debug.DrawLine(destPos, destPos + Vector3.up * 5, Color.red);
+            
+            if (CalDistance() <= monster.searchRange)
+            {
+                skeleton.ChangeState();
+                Debug.Log("Trace로 변경");
+            }
         }
 
-        void SetTarget(GameObject target)
+        private float CalDistance()
         {
-            if (skeleton.target == null)
-                skeleton.target = target;
-        }
+            Vector3 targetPos = monster.target.transform.position;
 
-        private void OnCollisionEnter(Collision collision)
-        {
-            if (collision.gameObject.tag == "Player")
-                gameObject.SetActive(false);
+            float distanceFromTarget = Mathf.Sqrt(Mathf.Pow(targetPos.x - transform.position.x, 2) +
+                                                  Mathf.Pow(targetPos.y - transform.position.y, 2) +
+                                                  Mathf.Pow(targetPos.z - transform.position.z, 2));
+            return distanceFromTarget;
         }
 
         IEnumerator ChangeDestPos()
         {
             while(true)
             {
-                destPos = new Vector3(Random.Range(-3, 4), 0, Random.Range(-3, 4));
-                Debug.Log(destPos);
+                destPos = new Vector3(transform.position.x + Random.Range(-3, 4),
+                                      transform.position.y,
+                                      transform.position.z + Random.Range(-3, 4));
+                //Debug.Log(destPos);
                 yield return new WaitForSeconds(3.0f);
             }
         }
@@ -122,7 +124,7 @@ public class Skeleton : MonoBehaviour
     void Start()
     {
         gameObject.AddComponent<Idle>();
-        gameObject.AddComponent<Trace>();
+        gameObject.AddComponent<Chase>();
         gameObject.AddComponent<Patrol>();
         gameObject.AddComponent<Attack>();
         gameObject.AddComponent<Hit>();
@@ -143,6 +145,8 @@ public class Skeleton : MonoBehaviour
         monster.rotateSpeed = 10f;
 
         monster.armor = 5f;
+
+        monster.searchRange = 15.0f;
 
         monster.state = Monster.State.Idle;
         monster.grade = Monster.Grade.Common;
