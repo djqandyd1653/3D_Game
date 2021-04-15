@@ -8,7 +8,7 @@ public class DrawWireArc : Editor
 {
     private void OnSceneGUI()
     {
-        Handles.color = Color.red;
+        Handles.color = Color.blue;
         Monster monster = (Monster)target;
         Handles.DrawWireArc(monster.transform.position,
         monster.transform.up, -monster.transform.right, 360, monster.searchRange);

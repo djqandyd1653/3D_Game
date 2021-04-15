@@ -30,12 +30,14 @@ public class Monster : MonoBehaviour
     public float attackSpeed;
 
     public float moveSpeed;
+    public float runSpeed;
     public float rotateSpeed;
 
     public float armor;
 
     public GameObject target;
     public float searchRange;
+    public float patrolRange;
 
     public State state;
     public Grade grade;

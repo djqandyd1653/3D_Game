@@ -14,7 +14,7 @@ public class Skeleton : MonoBehaviour
     private interface ISkeletonAction
     {
         void Action();
-        //void ChangeState();
+        ISkeletonAction ChangeState();
     }
 
     protected class StateComponent : MonoBehaviour
@@ -31,18 +31,58 @@ public class Skeleton : MonoBehaviour
 
     private class Idle : StateComponent, ISkeletonAction
     {
+        private void OnEnable()
+        {
+            skeleton.anim.SetBool("IsIdle", true);
+        }
+
+        private void OnDisable()
+        {
+            skeleton.anim.SetBool("IsIdle", false);
+        }
+
         public void Action()
         {
+            if(Input.GetKey(KeyCode.Space))
+            {
+                monster.state = Monster.State.Patrol;
+                skeleton.skeletonAction = ChangeState();
+            }
+        }
 
+        public ISkeletonAction ChangeState()
+        {
+            GetComponent<Idle>().enabled = false;
+            GetComponent<Patrol>().enabled = true;
+            return GetComponent<Patrol>();
         }
     }
 
     private class Chase : StateComponent, ISkeletonAction
     {
+        private void OnEnable()
+        {
+            skeleton.anim.SetBool("IsChase", true);
+        }
+
+        private void OnDisable()
+        {
+            skeleton.anim.SetBool("IsChase", false);
+        }
+
         public void Action()
         {
-            transform.LookAt(monster.target.transform, Vector3.up);
-            //skeleton.rigid.MovePosition(transform.position + )
+            ChaseMove();
+        }
+
+        private void ChaseMove()
+        {
+            skeleton.Move(monster.runSpeed);
+        }
+
+        public ISkeletonAction ChangeState()
+        {
+            return GetComponent<Attack>();
         }
     }
 
@@ -50,37 +90,57 @@ public class Skeleton : MonoBehaviour
     {
         Vector3 destPos;
 
-        new void Start()
+        private void OnEnable()
         {
-            base.Start();
-            StartCoroutine("ChangeDestPos");
+            skeleton.anim.SetBool("IsPatrol", true);
+            StartCoroutine(ChangeDestPos());
         }
+
+        private void OnDisable()
+        {
+            skeleton.anim.SetBool("IsPatrol", false);
+            StopCoroutine(ChangeDestPos());
+        }
+
         public void Action()
         {
+            PatrolMove();
             SearchTarget();
         }
 
-        void SearchTarget()
+        private void PatrolMove()
         {
-            transform.LookAt(destPos, Vector3.up);
-            skeleton.rigid.MovePosition(transform.position + transform.forward * monster.moveSpeed * Time.deltaTime);
-            
+            if (Mathf.Abs(CalDistance(destPos)) < 1)
+                return;
+
+            skeleton.Move(monster.moveSpeed);
+        }
+
+        private void SearchTarget()
+        {
+            Vector3 targetPos = monster.target.transform.position;
             Debug.DrawLine(destPos, destPos + Vector3.up * 5, Color.red);
-            
-            if (CalDistance() <= monster.searchRange)
+
+            if (CalDistance(targetPos) < monster.searchRange)
             {
-                skeleton.ChangeState();
+                ChangeState();
                 Debug.Log("Trace로 변경");
             }
         }
 
-        private float CalDistance()
+        private float CalDistance(Vector3 targetPos)
         {
-            Vector3 targetPos = monster.target.transform.position;
+            if (Mathf.Abs(targetPos.x - transform.position.x) > 50 ||
+                Mathf.Abs(targetPos.y - transform.position.y) > 50 ||
+                Mathf.Abs(targetPos.z - transform.position.z) > 50)
+            {
+                return monster.searchRange + 1;
+            }
 
             float distanceFromTarget = Mathf.Sqrt(Mathf.Pow(targetPos.x - transform.position.x, 2) +
                                                   Mathf.Pow(targetPos.y - transform.position.y, 2) +
                                                   Mathf.Pow(targetPos.z - transform.position.z, 2));
+
             return distanceFromTarget;
         }
 
@@ -88,20 +148,41 @@ public class Skeleton : MonoBehaviour
         {
             while(true)
             {
-                destPos = new Vector3(transform.position.x + Random.Range(-3, 4),
+                int angle = Random.Range(0, 360);
+                destPos = new Vector3(transform.position.x + Mathf.Cos(angle) * monster.patrolRange,
                                       transform.position.y,
-                                      transform.position.z + Random.Range(-3, 4));
+                                      transform.position.z + Mathf.Sin(angle) * monster.patrolRange);
                 //Debug.Log(destPos);
                 yield return new WaitForSeconds(3.0f);
             }
+        }
+
+        public ISkeletonAction ChangeState()
+        {
+            return GetComponent<Chase>();
         }
     }
 
     private class Attack : StateComponent, ISkeletonAction
     {
+        private void OnEnable()
+        {
+            skeleton.anim.SetBool("IsAttack", true);
+        }
+
+        private void OnDisable()
+        {
+            skeleton.anim.SetBool("IsAttack", false);
+        }
+
         public void Action()
         {
+            
+        }
 
+        public ISkeletonAction ChangeState()
+        {
+            return GetComponent<Idle>();
         }
     }
 
@@ -109,7 +190,12 @@ public class Skeleton : MonoBehaviour
     {
         public void Action()
         {
+            monster.hp--;
+        }
 
+        public ISkeletonAction ChangeState()
+        {
+            return GetComponent<Idle>();
         }
     }
 
@@ -118,6 +204,11 @@ public class Skeleton : MonoBehaviour
         public void Action()
         {
 
+        }
+
+        public ISkeletonAction ChangeState()
+        {
+            return GetComponent<Idle>();
         }
     }
 
@@ -130,7 +221,7 @@ public class Skeleton : MonoBehaviour
         gameObject.AddComponent<Hit>();
         gameObject.AddComponent<Die>();
 
-        skeletonAction = GetComponent<Patrol>();
+        skeletonAction = GetComponent<Idle>();
         anim = GetComponent<Animator>();
         rigid = GetComponent<Rigidbody>();
         monster = GetComponent<Monster>();
@@ -142,11 +233,13 @@ public class Skeleton : MonoBehaviour
         monster.attackSpeed = 10f;
 
         monster.moveSpeed = 10f;
+        monster.runSpeed = 20f;
         monster.rotateSpeed = 10f;
 
         monster.armor = 5f;
 
         monster.searchRange = 15.0f;
+        monster.patrolRange = 10.0f;
 
         monster.state = Monster.State.Idle;
         monster.grade = Monster.Grade.Common;
@@ -157,9 +250,15 @@ public class Skeleton : MonoBehaviour
         skeletonAction.Action();
     }
 
-    void ChangeState()
+    private void Move(float speed)
     {
+        Vector3 targetPos = monster.target.transform.position;
+        Vector3 destDir = targetPos - transform.position;
 
+        Quaternion dirToTarget = Quaternion.LookRotation(destDir);
+        transform.rotation = Quaternion.Slerp(transform.rotation, dirToTarget, 0.01f);
+
+        rigid.MovePosition(transform.position + destDir.normalized * speed * Time.deltaTime);
     }
 
     //void ChangeState(AI_State nextState)
