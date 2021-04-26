@@ -14,7 +14,7 @@ public class Skeleton : MonoBehaviour
     private interface ISkeletonAction
     {
         void Action();
-        ISkeletonAction ChangeState();
+        void ChangeState();
     }
 
     protected class StateComponent : MonoBehaviour
@@ -22,7 +22,7 @@ public class Skeleton : MonoBehaviour
         protected Skeleton skeleton;
         protected Monster monster;
 
-        protected void Start()
+        virtual protected void Awake()
         {
             skeleton = GetComponent<Skeleton>();
             monster = skeleton.monster;
@@ -43,18 +43,19 @@ public class Skeleton : MonoBehaviour
 
         public void Action()
         {
-            if(Input.GetKey(KeyCode.Space))
+            //적을 감지
+            // ture -> Attack()
+            // false -> 5초뒤 patrol
+            if (Input.GetKey(KeyCode.Space))
             {
                 monster.state = Monster.State.Patrol;
-                skeleton.skeletonAction = ChangeState();
+                ChangeState();
             }
         }
 
-        public ISkeletonAction ChangeState()
+        public void ChangeState()
         {
             GetComponent<Idle>().enabled = false;
-            GetComponent<Patrol>().enabled = true;
-            return GetComponent<Patrol>();
         }
     }
 
@@ -77,12 +78,22 @@ public class Skeleton : MonoBehaviour
 
         private void ChaseMove()
         {
+            Vector3 targetPos = monster.target.transform.position;
+
+            if(skeleton.CalDistance(targetPos) < monster.attackRange)
+            {
+                ChangeState();
+            }
+
             skeleton.Move(monster.runSpeed);
         }
 
-        public ISkeletonAction ChangeState()
+        public void ChangeState()
         {
-            return GetComponent<Attack>();
+            GetComponent<Chase>().enabled = false;
+            GetComponent<Attack>().enabled = true;
+            skeleton.skeletonAction = GetComponent<Attack>();
+            monster.state = Monster.State.Attack; 
         }
     }
 
@@ -110,7 +121,7 @@ public class Skeleton : MonoBehaviour
 
         private void PatrolMove()
         {
-            if (Mathf.Abs(CalDistance(destPos)) < 1)
+            if (Mathf.Abs(skeleton.CalDistance(destPos)) < 1)
                 return;
 
             skeleton.Move(monster.moveSpeed);
@@ -121,32 +132,15 @@ public class Skeleton : MonoBehaviour
             Vector3 targetPos = monster.target.transform.position;
             Debug.DrawLine(destPos, destPos + Vector3.up * 5, Color.red);
 
-            if (CalDistance(targetPos) < monster.searchRange)
+            if (skeleton.CalDistance(targetPos) < monster.searchRange)
             {
                 ChangeState();
-                Debug.Log("Trace로 변경");
             }
-        }
-
-        private float CalDistance(Vector3 targetPos)
-        {
-            if (Mathf.Abs(targetPos.x - transform.position.x) > 50 ||
-                Mathf.Abs(targetPos.y - transform.position.y) > 50 ||
-                Mathf.Abs(targetPos.z - transform.position.z) > 50)
-            {
-                return monster.searchRange + 1;
-            }
-
-            float distanceFromTarget = Mathf.Sqrt(Mathf.Pow(targetPos.x - transform.position.x, 2) +
-                                                  Mathf.Pow(targetPos.y - transform.position.y, 2) +
-                                                  Mathf.Pow(targetPos.z - transform.position.z, 2));
-
-            return distanceFromTarget;
         }
 
         IEnumerator ChangeDestPos()
         {
-            while(true)
+            while (true)
             {
                 int angle = Random.Range(0, 360);
                 destPos = new Vector3(transform.position.x + Mathf.Cos(angle) * monster.patrolRange,
@@ -157,9 +151,12 @@ public class Skeleton : MonoBehaviour
             }
         }
 
-        public ISkeletonAction ChangeState()
+        public void ChangeState()
         {
-            return GetComponent<Chase>();
+            GetComponent<Patrol>().enabled = false;
+            GetComponent<Chase>().enabled = true;
+            skeleton.skeletonAction = GetComponent<Chase>();
+            monster.state = Monster.State.Chase;
         }
     }
 
@@ -177,12 +174,12 @@ public class Skeleton : MonoBehaviour
 
         public void Action()
         {
-            
+
         }
 
-        public ISkeletonAction ChangeState()
+        public void ChangeState()
         {
-            return GetComponent<Idle>();
+            GetComponent<Idle>();
         }
     }
 
@@ -193,9 +190,9 @@ public class Skeleton : MonoBehaviour
             monster.hp--;
         }
 
-        public ISkeletonAction ChangeState()
+        public void ChangeState()
         {
-            return GetComponent<Idle>();
+            GetComponent<Idle>();
         }
     }
 
@@ -206,25 +203,29 @@ public class Skeleton : MonoBehaviour
 
         }
 
-        public ISkeletonAction ChangeState()
+        public void ChangeState()
         {
-            return GetComponent<Idle>();
+            GetComponent<Idle>();
         }
+    }
+
+    void Awake()
+    {
+        anim = GetComponent<Animator>();
+        rigid = GetComponent<Rigidbody>();
+        monster = GetComponent<Monster>();
     }
 
     void Start()
     {
         gameObject.AddComponent<Idle>();
-        gameObject.AddComponent<Chase>();
-        gameObject.AddComponent<Patrol>();
-        gameObject.AddComponent<Attack>();
-        gameObject.AddComponent<Hit>();
-        gameObject.AddComponent<Die>();
+        gameObject.AddComponent<Chase>().enabled = false;
+        gameObject.AddComponent<Patrol>().enabled = false;
+        gameObject.AddComponent<Attack>().enabled = false;
+        gameObject.AddComponent<Hit>().enabled = false;
+        gameObject.AddComponent<Die>().enabled = false;
 
         skeletonAction = GetComponent<Idle>();
-        anim = GetComponent<Animator>();
-        rigid = GetComponent<Rigidbody>();
-        monster = GetComponent<Monster>();
 
         monster.maxHp = 100f;
         monster.hp = monster.maxHp;
@@ -240,6 +241,7 @@ public class Skeleton : MonoBehaviour
 
         monster.searchRange = 15.0f;
         monster.patrolRange = 10.0f;
+        monster.attackRange = 3.0f;
 
         monster.state = Monster.State.Idle;
         monster.grade = Monster.Grade.Common;
@@ -261,172 +263,19 @@ public class Skeleton : MonoBehaviour
         rigid.MovePosition(transform.position + destDir.normalized * speed * Time.deltaTime);
     }
 
-    //void ChangeState(AI_State nextState)
-    //{
-    //    state = nextState;
+    private float CalDistance(Vector3 targetPos)
+    {
+        if (Mathf.Abs(targetPos.x - transform.position.x) > 50 ||
+            Mathf.Abs(targetPos.y - transform.position.y) > 50 ||
+            Mathf.Abs(targetPos.z - transform.position.z) > 50)
+        {
+            return monster.searchRange + 1;
+        }
 
-    //    anim.SetBool("isIdle", false);
-    //    anim.SetBool("isPatrol", false);
-    //    anim.SetBool("isTrace", false);
-    //    anim.SetBool("isAttack", false);
+        float distanceFromTarget = Mathf.Sqrt(Mathf.Pow(targetPos.x - transform.position.x, 2) +
+                                              Mathf.Pow(targetPos.y - transform.position.y, 2) +
+                                              Mathf.Pow(targetPos.z - transform.position.z, 2));
 
-    //    StopAllCoroutines();
-
-    //    switch (state)
-    //    {
-    //        case AI_State.Idle: StartCoroutine(Coroutine_Idle()); break;
-    //        case AI_State.Patrol: StartCoroutine(Coroutine_Patrol()); break;
-    //        case AI_State.Trace: StartCoroutine(Coroutine_Trace()); break;
-    //        case AI_State.Attack: StartCoroutine(Coroutine_Attack()); break;
-    //        case AI_State.Hide: StartCoroutine(Coroutine_Hide()); break;
-    //    }
-    //}
-
-    //#region Update
-    //void Update()
-    //{
-    //    switch (state)
-    //    {
-    //        case AI_State.Idle: Update_Idle(); break;
-    //        case AI_State.Patrol: Update_Patrol(); break;
-    //        case AI_State.Trace: Update_Trace(); break;
-    //        case AI_State.Attack: Update_Attack(); break;
-    //        case AI_State.Hide: Update_Hide(); break;
-    //    }
-    //}
-
-    //void Update_Idle()
-    //{
-    //    // 매 프레임해야 되는 실행문
-    //}
-
-    //void Update_Patrol()
-    //{
-    //    Vector3 posOffset = targetPos - transform.position;
-    //    float dist = posOffset.magnitude;
-
-    //    // 타겟지점에 일정 거리 이상
-    //    if (dist <= 0.3f)
-    //    {
-    //        ChangeState(AI_State.Idle);
-    //        return;
-    //    }
-
-    //    // 회전
-    //    var targetRotation = Quaternion.LookRotation(posOffset, Vector3.up);
-    //    transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, patrolRotation * Time.deltaTime);
-
-    //    // 이동
-    //    transform.position += transform.forward * patrolSpeed * Time.deltaTime;
-    //}
-
-    //void Update_Trace()
-    //{
-    //    Vector3 posOffset = player.transform.position - transform.position;
-    //    float dist = posOffset.magnitude;
-
-    //    // 타겟지점에 일정 거리 이상
-    //    if (dist <= 1.5f)
-    //    {
-    //        ChangeState(AI_State.Attack);
-    //        return;
-    //    }
-    //    else if (dist >= 12f)
-    //    {
-    //        ChangeState(AI_State.Idle);
-    //        return;
-    //    }
-
-    //    // 회전
-    //    var targetRotation = Quaternion.LookRotation(posOffset, Vector3.up);
-    //    transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, patrolRotation * Time.deltaTime);
-
-    //    // 이동
-    //    transform.position += transform.forward * traceSpeed * Time.deltaTime;
-    //}
-
-    //void Update_Attack()
-    //{
-    //    Vector3 posOffset = player.transform.position - transform.position;
-
-    //    if (anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.Attack") && anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 0.8f)
-    //    {
-    //        ChangeState(AI_State.Trace);
-    //        return;
-    //    }
-
-    //    // 회전
-    //    var targetRotation = Quaternion.LookRotation(posOffset, Vector3.up);
-    //    transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, attackRotation * Time.deltaTime);
-    //}
-
-    //void Update_Hide()
-    //{
-
-    //}
-    //#endregion
-
-    //#region Coroutine
-    //IEnumerator Coroutine_Idle()
-    //{
-    //    // 1. 상태가 바뀌고 최초에 한번만 하는 실행문
-    //    anim.SetBool("isIdle", true);
-
-    //    nextState = AI_State.Patrol;
-
-    //    // 2. 일정 시간(조건)마다 동작하는 실행문
-    //    while (true)
-    //    {
-    //        yield return new WaitForSeconds(2.0f);
-
-    //        ChangeState(nextState);
-    //    }
-    //}
-
-    //IEnumerator Coroutine_Patrol()
-    //{
-    //    // 1. 상태가 바뀌고 최초에 한번만 하는 실행문
-    //    anim.SetBool("isPatrol", true);
-
-    //    nextState = AI_State.Idle;
-
-    //    // 목표지점 설정
-    //    targetPos = transform.position + new Vector3(Random.Range(-3f, 3f), 0f, Random.Range(-3f, 3f));
-
-    //    // 2. 일정 시간(조건)마다 동작하는 실행문
-    //    while (true)
-    //    {
-    //        yield return new WaitForSeconds(5.0f);
-
-    //        ChangeState(nextState);
-    //    }
-    //}
-
-    //IEnumerator Coroutine_Trace()
-    //{
-    //    // 1. 상태가 바뀌고 최초에 한번만 하는 실행문
-    //    anim.SetBool("isTrace", true);
-
-    //    while (true)
-    //    {
-    //        yield return new WaitForSeconds(5.0f);
-    //    }
-    //}
-    //IEnumerator Coroutine_Attack()
-    //{
-    //    // 1. 상태가 바뀌고 최초에 한번만 하는 실행문
-    //    anim.SetBool("isAttack", true);
-
-    //    // 2. 일정 시간(조건)마다 동작하는 실행문
-    //    while (true)
-    //    {
-    //        yield return new WaitForSeconds(10.1f);
-
-    //    }
-    //}
-    //IEnumerator Coroutine_Hide()
-    //{
-    //    return null;
-    //}
-    //#endregion
+        return distanceFromTarget;
+    }
 }

@@ -38,6 +38,7 @@ public class Monster : MonoBehaviour
     public GameObject target;
     public float searchRange;
     public float patrolRange;
+    public float attackRange;
 
     public State state;
     public Grade grade;

@@ -528,6 +528,7 @@ MonoBehaviour:
   target: {fileID: 1752774140}
   searchRange: 0
   patrolRange: 0
+  attackRange: 0
   state: 0
   grade: 0
 --- !u!1001 &568152212
