@@ -14,7 +14,7 @@ public class Skeleton : MonoBehaviour
     private interface ISkeletonAction
     {
         void Action();
-        void ChangeState();
+        void ChangeState(Behaviour component);
     }
 
     protected class StateComponent : MonoBehaviour
@@ -31,8 +31,11 @@ public class Skeleton : MonoBehaviour
 
     private class Idle : StateComponent, ISkeletonAction
     {
+        float changePatrolTime;
+
         private void OnEnable()
         {
+            changePatrolTime = 5f;
             skeleton.anim.SetBool("IsIdle", true);
         }
 
@@ -44,18 +47,33 @@ public class Skeleton : MonoBehaviour
         public void Action()
         {
             //적을 감지
-            // ture -> Attack()
-            // false -> 5초뒤 patrol
-            if (Input.GetKey(KeyCode.Space))
+            changePatrolTime -= Time.deltaTime;
+            Vector3 targetPos = monster.target.transform.position;
+            if(skeleton.CalDistance(targetPos) < monster.attackRange)
             {
+                ChangeState(GetComponent<Attack>());
+                monster.state = Monster.State.Attack;
+                return;
+            }
+
+            if(skeleton.CalDistance(targetPos) < monster.searchRange || changePatrolTime < 0f)
+            {
+                ChangeState(GetComponent<Patrol>());
                 monster.state = Monster.State.Patrol;
-                ChangeState();
+                return;
             }
         }
 
-        public void ChangeState()
+        public void ChangeState(Behaviour component)
         {
             GetComponent<Idle>().enabled = false;
+            component.enabled = true;
+            skeleton.skeletonAction = component as ISkeletonAction;
+
+            if(skeleton.skeletonAction == null)
+            {
+                Debug.LogError("Component에서 ISkeletonAction으로 형변환 실패 (Idle)");
+            }
         }
     }
 
@@ -63,6 +81,7 @@ public class Skeleton : MonoBehaviour
     {
         private void OnEnable()
         {
+            monster.rotateSpeed = 0.01f;
             skeleton.anim.SetBool("IsChase", true);
         }
 
@@ -82,49 +101,62 @@ public class Skeleton : MonoBehaviour
 
             if(skeleton.CalDistance(targetPos) < monster.attackRange)
             {
-                ChangeState();
+                ChangeState(GetComponent<Attack>());
+                monster.state = Monster.State.Attack;
             }
 
-            skeleton.Move(monster.runSpeed);
+            skeleton.Move(targetPos, monster.runSpeed);
         }
 
-        public void ChangeState()
+        public void ChangeState(Behaviour component)
         {
             GetComponent<Chase>().enabled = false;
-            GetComponent<Attack>().enabled = true;
-            skeleton.skeletonAction = GetComponent<Attack>();
-            monster.state = Monster.State.Attack; 
+            component.enabled = true;
+            skeleton.skeletonAction = component as ISkeletonAction;
+
+            if (skeleton.skeletonAction == null)
+            {
+                Debug.LogError("Component에서 ISkeletonAction으로 형변환 실패 (Chase)");
+            }
         }
     }
 
     private class Patrol : StateComponent, ISkeletonAction
     {
         Vector3 destPos;
+        private IEnumerator coroutine;
 
         private void OnEnable()
         {
+            coroutine = ChangeDestPos();
+            monster.rotateSpeed = 0.005f;
             skeleton.anim.SetBool("IsPatrol", true);
-            StartCoroutine(ChangeDestPos());
+            Debug.Log("코루틴 시작");
+            StartCoroutine(coroutine);
         }
 
         private void OnDisable()
         {
             skeleton.anim.SetBool("IsPatrol", false);
-            StopCoroutine(ChangeDestPos());
+            Debug.Log("코루틴 멈춤");
+            StopCoroutine(coroutine);
         }
 
         public void Action()
         {
-            PatrolMove();
             SearchTarget();
+            PatrolMove();
         }
 
         private void PatrolMove()
         {
             if (Mathf.Abs(skeleton.CalDistance(destPos)) < 1)
-                return;
+            {
+                ChangeState(GetComponent<Idle>());
+                monster.state = Monster.State.Idle;
+            }
 
-            skeleton.Move(monster.moveSpeed);
+            skeleton.Move(destPos, monster.moveSpeed);
         }
 
         private void SearchTarget()
@@ -134,7 +166,8 @@ public class Skeleton : MonoBehaviour
 
             if (skeleton.CalDistance(targetPos) < monster.searchRange)
             {
-                ChangeState();
+                ChangeState(GetComponent<Chase>());
+                monster.state = Monster.State.Chase;
             }
         }
 
@@ -146,17 +179,21 @@ public class Skeleton : MonoBehaviour
                 destPos = new Vector3(transform.position.x + Mathf.Cos(angle) * monster.patrolRange,
                                       transform.position.y,
                                       transform.position.z + Mathf.Sin(angle) * monster.patrolRange);
-                //Debug.Log(destPos);
-                yield return new WaitForSeconds(3.0f);
+                Debug.Log("위치 변경");
+                yield return new WaitForSeconds(5.0f);
             }
         }
 
-        public void ChangeState()
+        public void ChangeState(Behaviour component)
         {
             GetComponent<Patrol>().enabled = false;
-            GetComponent<Chase>().enabled = true;
-            skeleton.skeletonAction = GetComponent<Chase>();
-            monster.state = Monster.State.Chase;
+            component.enabled = true;
+            skeleton.skeletonAction = component as ISkeletonAction;
+
+            if (skeleton.skeletonAction == null)
+            {
+                Debug.LogError("Component에서 ISkeletonAction으로 형변환 실패 (Patrol)");
+            }
         }
     }
 
@@ -174,12 +211,24 @@ public class Skeleton : MonoBehaviour
 
         public void Action()
         {
-
+            if(skeleton.anim.GetCurrentAnimatorStateInfo(0).IsName("Attack") &&
+                skeleton.anim.GetCurrentAnimatorStateInfo(0).normalizedTime > 0.9f)
+            {
+                ChangeState(GetComponent<Idle>());
+                monster.state = Monster.State.Idle;
+            }
         }
 
-        public void ChangeState()
+        public void ChangeState(Behaviour component)
         {
-            GetComponent<Idle>();
+            GetComponent<Attack>().enabled = false;
+            component.enabled = true;
+            skeleton.skeletonAction = component as ISkeletonAction;
+
+            if (skeleton.skeletonAction == null)
+            {
+                Debug.LogError("Component에서 ISkeletonAction으로 형변환 실패 (Attack)");
+            }
         }
     }
 
@@ -190,7 +239,7 @@ public class Skeleton : MonoBehaviour
             monster.hp--;
         }
 
-        public void ChangeState()
+        public void ChangeState(Behaviour component)
         {
             GetComponent<Idle>();
         }
@@ -203,7 +252,7 @@ public class Skeleton : MonoBehaviour
 
         }
 
-        public void ChangeState()
+        public void ChangeState(Behaviour component)
         {
             GetComponent<Idle>();
         }
@@ -218,14 +267,12 @@ public class Skeleton : MonoBehaviour
 
     void Start()
     {
-        gameObject.AddComponent<Idle>();
+        skeletonAction = gameObject.AddComponent<Idle>();
         gameObject.AddComponent<Chase>().enabled = false;
         gameObject.AddComponent<Patrol>().enabled = false;
         gameObject.AddComponent<Attack>().enabled = false;
         gameObject.AddComponent<Hit>().enabled = false;
         gameObject.AddComponent<Die>().enabled = false;
-
-        skeletonAction = GetComponent<Idle>();
 
         monster.maxHp = 100f;
         monster.hp = monster.maxHp;
@@ -235,13 +282,12 @@ public class Skeleton : MonoBehaviour
 
         monster.moveSpeed = 10f;
         monster.runSpeed = 20f;
-        monster.rotateSpeed = 10f;
 
         monster.armor = 5f;
 
         monster.searchRange = 15.0f;
         monster.patrolRange = 10.0f;
-        monster.attackRange = 3.0f;
+        monster.attackRange = 5.0f;
 
         monster.state = Monster.State.Idle;
         monster.grade = Monster.Grade.Common;
@@ -252,15 +298,14 @@ public class Skeleton : MonoBehaviour
         skeletonAction.Action();
     }
 
-    private void Move(float speed)
+    private void Move(Vector3 targetPos, float speed)
     {
-        Vector3 targetPos = monster.target.transform.position;
         Vector3 destDir = targetPos - transform.position;
 
         Quaternion dirToTarget = Quaternion.LookRotation(destDir);
-        transform.rotation = Quaternion.Slerp(transform.rotation, dirToTarget, 0.01f);
+        transform.rotation = Quaternion.Slerp(transform.rotation, dirToTarget, monster.rotateSpeed);
 
-        rigid.MovePosition(transform.position + destDir.normalized * speed * Time.deltaTime);
+        rigid.MovePosition(transform.position + transform.forward * speed * Time.deltaTime);
     }
 
     private float CalDistance(Vector3 targetPos)
