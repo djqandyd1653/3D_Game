@@ -240,7 +240,7 @@ public class PlayerController : MonoBehaviour
         }
 
         if (anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.Attack02") &&
-            anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1f)
+            anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 0.9f)
             ChangeComponent(GetComponent<Idle>(), Player.State.Idle);
     }
 

@@ -9,6 +9,7 @@ public class Monster : MonoBehaviour
         Idle,
         Chase,
         Patrol,
+        GoBack,
         Attack,
         Hit,
         Die
@@ -39,6 +40,8 @@ public class Monster : MonoBehaviour
     public float searchRange;
     public float patrolRange;
     public float attackRange;
+
+    public Vector3 originPos;
 
     public State state;
     public Grade grade;
