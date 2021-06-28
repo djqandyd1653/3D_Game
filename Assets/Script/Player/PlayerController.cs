@@ -6,7 +6,7 @@ public class PlayerController : MonoBehaviour
 {
     public PlayerAction playerAction;
     public Animator anim;
-    public Player player;
+    private Player player;
 
     public interface PlayerAction
     {
