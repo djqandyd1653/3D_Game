@@ -747,6 +747,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 761166359846ede4fb152f62ae33dcbc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  firstSpawnDatas: {fileID: 11400000, guid: 89f8987408b42a9448dc13f61d28d990, type: 2}
   monsterObjects:
   - {fileID: 3892178846479587580, guid: 93e35114b6aef84488b3c3776f5039df, type: 3}
   - {fileID: 1834734264314692567, guid: 734172cd26ad5574db3f12235400ab53, type: 3}
@@ -1245,6 +1246,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Skeleton
+      objectReference: {fileID: 0}
+    - target: {fileID: 1834734264314692567, guid: 734172cd26ad5574db3f12235400ab53,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5476711247180981288, guid: 734172cd26ad5574db3f12235400ab53,
         type: 3}

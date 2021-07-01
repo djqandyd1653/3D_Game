@@ -19,6 +19,7 @@ MonoBehaviour:
   moveSpeed: 10
   rotateSpeed: 0.025
   armor: 5
+  respawnTime: 5
   monsterGrade: 0
   monsterState: 0
   searchRange: 15

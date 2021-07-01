@@ -317,21 +317,22 @@ public class Skeleton : Monster
         }
     }
 
-    void Awake()
+    private void Awake()
     {
         anim = GetComponent<Animator>();
         rigid = GetComponent<Rigidbody>();
     }
 
-    void OnEnable()
+    private void OnEnable()
     {
-        
+        originPos = transform.position;                             // (임시) 시작위치 저장 시스템 구축 후 데이터 전달받기
+        hp = monsterData.Hp;
     }
 
-    void Start()
+    private void Start()
     {
         target = GameObject.FindGameObjectWithTag("Player");        // (임시) 타겟을 지정받는 방법 생각해보자
-        originPos = transform.position;                             // (임시) 시작위치 저장 시스템 구축 후 데이터 전달받기
+        
 
         skeletonAction = gameObject.AddComponent<Idle>();
         gameObject.AddComponent<Chase>().enabled = false;
@@ -342,9 +343,21 @@ public class Skeleton : Monster
         gameObject.AddComponent<Die>().enabled = false;
     }
 
-    void Update()
+    private void Update()
     {
         skeletonAction.MonsterAction();
+
+        // Test Start : 나중에 OnCollisonEnter로 플레이어 무기와 충돌시 이벤트 발생으로 변경
+
+        hp -= Time.smoothDeltaTime;
+
+        if(hp <= 0)
+        {
+
+            GameEvent.Instance.OnEventMonsterDead(this.gameObject, originPos, monsterData.MonsterName, monsterData.RespawnTime);
+        }
+
+        // Test End
     }
 
     // 움직임

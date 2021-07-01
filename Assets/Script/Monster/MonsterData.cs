@@ -56,6 +56,10 @@ public class MonsterData : ScriptableObject
     public float Armor { get { return armor; } }
 
     [SerializeField]
+    private float respawnTime;
+    public float RespawnTime { get { return respawnTime; } }
+
+    [SerializeField]
     private Grade monsterGrade;
     public Grade MonsterGrade { get { return monsterGrade; } }
 
