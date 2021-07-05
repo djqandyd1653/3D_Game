@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b743a997b902b049971ba8947fff725, type: 3}
+  m_Name: Slime
+  m_EditorClassIdentifier: 
+  monsterName: Slime
+  hp: 3
+  attackPower: 2
+  attackSpeed: 2
+  moveSpeed: 2
+  rotateSpeed: 2
+  armor: 2
+  respawnTime: 5
+  monsterGrade: 0
+  monsterState: 0
+  searchRange: 15
+  patrolRange: 10
+  attackRange: 5

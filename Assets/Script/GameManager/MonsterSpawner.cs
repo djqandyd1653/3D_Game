@@ -131,7 +131,7 @@ public class MonsterSpawner : MonoBehaviour
             return;
 
         var points = from point in spawnPointsData.Keys.ToList()
-                where /*Vector3.SqrMagnitude(player.position - point) < 100 &&*/ spawnPointsData[point].RespawnTime <= 0
+                where (Vector3.SqrMagnitude(player.position - point) < 100 && spawnPointsData[point].RespawnTime <= 0)
                 select point;
 
         foreach(var point in points)
