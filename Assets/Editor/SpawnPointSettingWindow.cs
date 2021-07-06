@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using System.Linq;
 
 public class SpawnPointSettingWindow : EditorWindow
 {
@@ -19,10 +20,10 @@ public class SpawnPointSettingWindow : EditorWindow
 
     GUISkin skin;
 
-    MonsterData[] monsterDatas;
+    GameObject[] monsterObjects;
     List<string> monsterNameList = new List<string>();
-    Vector2 scrollPos;
-    int currMonsterNum = 0;
+    List<GameObject> summonedMonsterList = new List<GameObject>();
+    int monsterNum = 0;
 
     private MonsterData monsterData;
 
@@ -58,11 +59,11 @@ public class SpawnPointSettingWindow : EditorWindow
 
     private void InitData()
     {
-        monsterDatas = Resources.LoadAll<MonsterData>("Datas/Monsters");
+        monsterObjects = Resources.LoadAll<GameObject>("Prefabs/Monster");
 
-        foreach (var data in monsterDatas)
+        foreach (var data in monsterObjects)
         {
-            monsterNameList.Add(data.MonsterName);
+            monsterNameList.Add(data.name);
         }
     }
 
@@ -111,14 +112,10 @@ public class SpawnPointSettingWindow : EditorWindow
 
         GUILayout.BeginHorizontal();
         GUILayout.Label("name", skin.GetStyle("Info"));
-        scrollPos = EditorGUILayout.BeginScrollView(scrollPos, false, true);
-        currMonsterNum = EditorGUILayout.Popup(currMonsterNum, monsterNameList.ToArray());
-        EditorGUILayout.EndScrollView();
+        monsterNum = EditorGUILayout.Popup(monsterNum, monsterNameList.ToArray());
         GUILayout.EndHorizontal();
 
         GUILayout.Label("Position", skin.GetStyle("Info"));
-
-        
 
         GUILayout.EndArea();
     }
@@ -128,16 +125,134 @@ public class SpawnPointSettingWindow : EditorWindow
         GUILayout.BeginArea(buttonSection);
 
         GUILayout.BeginHorizontal();
-        if (GUILayout.Button("Set Position", GUILayout.Height(70)))
+        if (GUILayout.Button("Spawn Monster", GUILayout.Height(70)))
         {
             Debug.Log("Input Set Position Button");
+            SpawnTempMonster();
+        }
+
+        if(GUILayout.Button("Remove Monster", GUILayout.Height(70)))
+        {
+            RemoveMonster();
         }
 
         if(GUILayout.Button("Save All", GUILayout.Height(70)))
         {
+            foreach(var data in summonedMonsterList)
+            {
+                Debug.Log(data.name);
+            }
+
             Debug.Log("Input Save All Button");
         }
         GUILayout.EndHorizontal();
+        GUILayout.EndArea();
+    }
+
+    private void SpawnTempMonster()
+    {
+        Vector3 sceneViewCenterPoint = new Vector3(SceneView.lastActiveSceneView.camera.scaledPixelWidth / 2,
+                                                   SceneView.lastActiveSceneView.camera.scaledPixelHeight / 2,
+                                                   0);
+
+        Ray ray = SceneView.lastActiveSceneView.camera.ScreenPointToRay(sceneViewCenterPoint);
+
+        if(Physics.Raycast(ray, out RaycastHit hit))
+        {
+            Vector3 hitPoint = hit.point;
+            var tempMonster = Instantiate(monsterObjects[monsterNum], hitPoint, Quaternion.identity);
+            summonedMonsterList.Add(tempMonster);
+            Selection.activeGameObject = tempMonster;
+        }
+    }
+
+    private void RemoveMonster()
+    {
+        if(Selection.gameObjects.Length == 0)
+        {
+            Debug.LogError("No object selected'");
+            return;
+        }
+
+        bool tempObject = false;
+
+        foreach (var selectedObject in Selection.gameObjects)
+        {
+            tempObject = summonedMonsterList.Exists(x => GameObject.ReferenceEquals(x, selectedObject));
+
+            if (!tempObject)
+            {
+                RemovalWarningWindow.OpenWindow(ref summonedMonsterList);
+                return;
+            }
+        }
+
+        foreach (var selectedObject in Selection.gameObjects)
+        {
+            if (summonedMonsterList.Remove(selectedObject))
+            {
+                DestroyImmediate(selectedObject);
+            }
+        }
+    }
+}
+
+public class RemovalWarningWindow : EditorWindow
+{
+    static RemovalWarningWindow window;
+    static List<GameObject> summonedMonsterList;
+    Rect buttonSection;
+
+    public static void OpenWindow(ref List<GameObject> _summonedMonsterList)
+    {
+        summonedMonsterList = _summonedMonsterList;
+        window = (RemovalWarningWindow)GetWindow(typeof(RemovalWarningWindow));
+        window.maxSize = new Vector2(300, 150);
+        window.minSize = window.maxSize;
+        window.Show();
+    }
+
+    private void OnGUI()
+    {
+        DrawLayout();
+        DrawButton();
+    }
+
+    private void DrawLayout()
+    {
+        buttonSection.x = 0;
+        buttonSection.y = 0;
+        buttonSection.width = position.width;
+        buttonSection.height = position.height;
+    }
+
+    private void DrawButton()
+    {
+        GUILayout.BeginArea(buttonSection);
+
+        GUILayout.Label("Warning! : An object not in the list exists. Are you sure you want to remove it?");
+
+        GUILayout.BeginHorizontal();
+        if(GUILayout.Button("Remove", GUILayout.Height(70)))
+        {
+            foreach (var selectedObject in Selection.gameObjects)
+            {
+                if (!summonedMonsterList.Remove(selectedObject))
+                {
+                    Debug.LogError("Doesn't exist in the 'summonedMonsterList'");
+                    continue;
+                }
+
+                DestroyImmediate(selectedObject);
+            }
+        }
+
+        if (GUILayout.Button("Cancel", GUILayout.Height(70)))
+        {
+            window.Close();
+        }
+        GUILayout.EndHorizontal();
+
         GUILayout.EndArea();
     }
 }

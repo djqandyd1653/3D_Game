@@ -160,10 +160,10 @@ public class MonsterSpawner : MonoBehaviour
             }
         }
 
-        foreach (var data in spawnPointsData)
-        {
-            Debug.Log("Position: " + data.Key + ", Name: " + data.Value.Name + ", RespawnTime: " + data.Value.RespawnTime);
-        }
+        //foreach (var data in spawnPointsData)
+        //{
+        //    Debug.Log("Position: " + data.Key + ", Name: " + data.Value.Name + ", RespawnTime: " + data.Value.RespawnTime);
+        //}
     }
 
 
