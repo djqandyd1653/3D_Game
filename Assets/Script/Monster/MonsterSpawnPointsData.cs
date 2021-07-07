@@ -21,11 +21,12 @@ public class MonsterSpawnPointsData : ScriptableObject
         }
     }
 
-    // Unity Editor 공부하고 변경하자
-    //[SerializeField]
-    //private List<MonsterSpawnData> dataList;
-
     [SerializeField]
-    private MonsterSpawnData[] dataList;
-    public MonsterSpawnData[] DataList { get { return dataList; } }
+    private List<MonsterSpawnData> dataList = new List<MonsterSpawnData>();
+    public MonsterSpawnData[] DataList { get { return dataList.ToArray(); } }
+
+    public void AddSpawnData(Vector3 point, string name, float time = 0)
+    {
+        dataList.Add(new MonsterSpawnData(point, name, time));
+    }
 }
