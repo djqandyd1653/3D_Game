@@ -13,15 +13,18 @@ MonoBehaviour:
   m_Name: New Monster Spawn Points Data
   m_EditorClassIdentifier: 
   dataList:
-  - originPosition: {x: 3.0876544, y: -3.8228879e-16, z: 17.216757}
-    monsterName: Slime
-    respawnTime: 0
-  - originPosition: {x: -6.5821767, y: -3.6930237e-16, z: 16.631899}
+  - originPosition: {x: 0, y: 0, z: 25}
     monsterName: Skeleton
     respawnTime: 0
-  - originPosition: {x: -22.242538, y: -5.3042426e-16, z: 23.888184}
+  - originPosition: {x: 10, y: 0, z: 25}
     monsterName: Skeleton
     respawnTime: 0
-  - originPosition: {x: -12.173339, y: -5.31611e-16, z: 23.94163}
+  - originPosition: {x: -10, y: 0, z: 25}
+    monsterName: Skeleton
+    respawnTime: 0
+  - originPosition: {x: 20, y: 0, z: 25}
+    monsterName: Skeleton
+    respawnTime: 0
+  - originPosition: {x: -20, y: 0, z: 25}
     monsterName: Skeleton
     respawnTime: 0

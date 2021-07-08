@@ -20,6 +20,7 @@ public class Player : MonoBehaviour
 
     [Header("State")]
     public State state;
+    public State PlayerState { get { return state; } }
 
     [Header("Stamina")]
     public float stamina;                   // 현재 스태미나
@@ -29,6 +30,7 @@ public class Player : MonoBehaviour
 
     [Header("Attack")]
     public float attackPower;
+    public float AttackPower { get { return attackPower; } }
 
     [Header("Move")]
     public float vertical;                  // 전, 후 방향

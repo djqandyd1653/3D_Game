@@ -54,10 +54,10 @@ public class MonsterSpawner : MonoBehaviour
             spawnPointsData.Add(data.originPosition, new SpawnMonsterData(data.monsterName, data.respawnTime));
         }
 
-        foreach(var data in spawnPointsData)
-        {
-            Debug.Log("Position: " + data.Key + ", Name: " + data.Value.Name + ", RespawnTime: " + data.Value.RespawnTime);
-        }
+        //foreach(var data in spawnPointsData)
+        //{
+        //    Debug.Log("Position: " + data.Key + ", Name: " + data.Value.Name + ", RespawnTime: " + data.Value.RespawnTime);
+        //}
 
         foreach(var monster in monsterObjects)
         {

@@ -266,7 +266,7 @@ public class Skeleton : Monster
             {
                 ChangeState(GetComponent<Chase>());
                 //monsterData.MonsterState = MonsterData.State.Chase; // (임시) 상태 변수가 꼭 필요한가?, monsterData에 들어있어야 하나?
-                Debug.Log("Attack에서 ChangeState");
+                //Debug.Log("Attack에서 ChangeState");
             }
         }
 
@@ -277,7 +277,7 @@ public class Skeleton : Monster
 
             if (_nextState == null)
             {
-                Debug.LogError("Component에서 ISkeletonAction으로 형변환 실패 (Attack)");
+                Debug.LogError("ISkeletonAction에서 Component로 형변환 실패 (Attack)");
             }
 
             _nextState.enabled = true;
@@ -290,14 +290,39 @@ public class Skeleton : Monster
 
     private class Hit : StateComponent, IMonsterAction
     {
+        private void OnEnable()
+        {
+            skeleton.anim.SetTrigger("IsHit");
+        }
+
         public void MonsterAction()
         {
-            //monsterData.Hp--; //(임시) hp변경하지 않고 hp바UI를 변경
+            if(skeleton.hp <= 0)
+            {
+                ChangeState(GetComponent<Die>());
+                Debug.Log("Hit -> Die");
+                return;
+            }
+
+            if (skeleton.anim.GetCurrentAnimatorStateInfo(0).normalizedTime > 1f)
+            {
+                ChangeState(GetComponent<Idle>());
+                Debug.Log("Hit에서 ChangeState");
+            }
         }
 
         public void ChangeState(IMonsterAction nextState)
         {
-            GetComponent<Idle>();
+            GetComponent<Hit>().enabled = false;
+            var _nextState = nextState as StateComponent;
+
+            if(_nextState == null)
+            {
+                Debug.LogError("ISkeletonAction에서 Component로 형변환 실패 (Hit)");
+            }
+
+            _nextState.enabled = true;
+            skeleton.skeletonAction = nextState;
         }
     }
 
@@ -306,14 +331,38 @@ public class Skeleton : Monster
 
     private class Die : StateComponent, IMonsterAction
     {
+        private void OnEnable()
+        {
+            skeleton.anim.SetBool("IsDie", true);
+        }
+
+        private void OnDisable()
+        {
+            skeleton.anim.SetBool("IsDie", false);
+        }
+
         public void MonsterAction()
         {
-
+            if (skeleton.anim.GetCurrentAnimatorStateInfo(0).normalizedTime > 1f)
+            {
+                GameEvent.Instance.OnEventMonsterDead(this.gameObject, skeleton.originPos, monsterData.MonsterName, monsterData.RespawnTime);
+                ChangeState(GetComponent<Idle>());
+                Debug.Log("Die에서 ChangeState");
+            }
         }
 
         public void ChangeState(IMonsterAction nextState)
         {
-            GetComponent<Idle>();
+            GetComponent<Die>().enabled = false;
+            var _nextState = nextState as StateComponent;
+
+            if (_nextState == null)
+            {
+                Debug.LogError("ISkeletonAction에서 Component로 형변환 실패 (Die)");
+            }
+
+            _nextState.enabled = true;
+            skeleton.skeletonAction = nextState;
         }
     }
 
@@ -346,18 +395,6 @@ public class Skeleton : Monster
     private void Update()
     {
         skeletonAction.MonsterAction();
-
-        // Test Start : 나중에 OnCollisonEnter로 플레이어 무기와 충돌시 이벤트 발생으로 변경
-
-        hp -= Time.smoothDeltaTime;
-
-        if(hp <= 0)
-        {
-
-            GameEvent.Instance.OnEventMonsterDead(this.gameObject, originPos, monsterData.MonsterName, monsterData.RespawnTime);
-        }
-
-        // Test End
     }
 
     // 움직임
@@ -385,5 +422,18 @@ public class Skeleton : Monster
 
         float distanceFromTarget = Vector3.Distance(targetPos, transform.position);
         return distanceFromTarget;
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if(collision.collider.CompareTag("Weapon"))
+        {
+            var player = target.GetComponent<Player>();
+            if(player.PlayerState == Player.State.Attack01 || player.PlayerState == Player.State.Attack02)
+            {
+                hp -= player.AttackPower;
+                skeletonAction.ChangeState(GetComponent<Hit>());
+            }
+        }
     }
 }

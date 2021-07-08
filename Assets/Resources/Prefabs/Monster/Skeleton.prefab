@@ -43,6 +43,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   monsterData: {fileID: 11400000, guid: a2c59c97315d67c4fa8499e21f34b2ae, type: 2}
+  hp: 0
 --- !u!1001 &1834734264314660153
 PrefabInstance:
   m_ObjectHideFlags: 0
