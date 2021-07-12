@@ -655,7 +655,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &614701523
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -817,7 +817,7 @@ PrefabInstance:
     - target: {fileID: 1834734264314273783, guid: 734172cd26ad5574db3f12235400ab53,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 25
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 1834734264314273783, guid: 734172cd26ad5574db3f12235400ab53,
         type: 3}
@@ -858,6 +858,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Skeleton
+      objectReference: {fileID: 0}
+    - target: {fileID: 1834734264314692567, guid: 734172cd26ad5574db3f12235400ab53,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6286800731774450904, guid: 734172cd26ad5574db3f12235400ab53,
+        type: 3}
+      propertyPath: m_Constraints
+      value: 116
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 734172cd26ad5574db3f12235400ab53, type: 3}
@@ -1559,6 +1569,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_TagString
       value: Weapon
+      objectReference: {fileID: 0}
+    - target: {fileID: 7345503184606247924, guid: 35794c11eaf0f874e80b6eadc30e3afd,
+        type: 3}
+      propertyPath: m_Constraints
+      value: 116
       objectReference: {fileID: 0}
     - target: {fileID: 8460630837062595728, guid: 35794c11eaf0f874e80b6eadc30e3afd,
         type: 3}

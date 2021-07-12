@@ -15,7 +15,7 @@ public class PlayerController : MonoBehaviour
 
     protected class StateComponent : MonoBehaviour
     {
-        PlayerController playerCtrl;
+        protected PlayerController playerCtrl;
         protected Player player;
 
         protected void Start()
@@ -96,7 +96,20 @@ public class PlayerController : MonoBehaviour
     {
         public void Action()
         {
+            if (playerCtrl.anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.Attack01") && player.state == Player.State.Attack01)
+            {
+                if (playerCtrl.anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 0.9f)
+                    playerCtrl.ChangeComponent(GetComponent<Idle>(), Player.State.Idle);
 
+                else if (playerCtrl.anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 0.4f &&
+                    Input.GetMouseButtonDown(0))
+                    playerCtrl.ChangeState(Player.State.Attack02);
+            }
+
+            if (playerCtrl.anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.Attack02") &&
+                playerCtrl.anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1f &&
+                playerCtrl.player.state == Player.State.Attack02)
+                playerCtrl.ChangeComponent(GetComponent<Idle>(), Player.State.Idle);
         }
     }
 
@@ -165,7 +178,10 @@ public class PlayerController : MonoBehaviour
         player.vertical = Input.GetAxisRaw("Vertical");
         player.horizontal = Input.GetAxisRaw("Horizontal");
 
-        if (player.state == Player.State.Idle || player.state == Player.State.Move)
+        if ((player.state == Player.State.Idle || player.state == Player.State.Move) &&
+            (anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.Idle_Battle") || 
+            anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.WalkForward") || 
+            anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.WalkSide")))
             MoveInput();
 
         if (player.state == Player.State.Move || player.state == Player.State.Run)
@@ -228,20 +244,6 @@ public class PlayerController : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0) && player.state != Player.State.Attack01 && player.state != Player.State.Attack02)
             ChangeComponent(GetComponent<Attack>(), Player.State.Attack01);
-
-        if (anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.Attack01") && player.state == Player.State.Attack01)
-        {
-            if (anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 0.9f)
-                ChangeComponent(GetComponent<Idle>(), Player.State.Idle);
-
-            else if (anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 0.4f &&
-                Input.GetMouseButtonDown(0))
-                ChangeState(Player.State.Attack02);
-        }
-
-        if (anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.Attack02") &&
-            anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 0.9f)
-            ChangeComponent(GetComponent<Idle>(), Player.State.Idle);
     }
 
     void HitInput()

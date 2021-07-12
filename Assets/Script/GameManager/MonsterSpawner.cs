@@ -115,10 +115,10 @@ public class MonsterSpawner : MonoBehaviour
 
         // Test Start : 정보가 확실히 들어갔는지
 
-        foreach(var a in spawnPointsData)
-        {
-            Debug.Log("Original Position: " + a.Key + ", Name: " + a.Value.Name + ", Respawn Time: " + a.Value.RespawnTime);
-        }
+        //foreach(var a in spawnPointsData)
+        //{
+        //    Debug.Log("Original Position: " + a.Key + ", Name: " + a.Value.Name + ", Respawn Time: " + a.Value.RespawnTime);
+        //}
         
 
         // Test End
