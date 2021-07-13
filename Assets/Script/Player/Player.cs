@@ -16,10 +16,12 @@ public class Player : MonoBehaviour
     }
 
     [Header("Hp")]
-    public float hp;
+    [SerializeField]
+    protected float hp;
 
     [Header("State")]
-    public State state;
+    [SerializeField]
+    protected State state;
     public State PlayerState { get { return state; } }
 
     [Header("Stamina")]
@@ -29,7 +31,8 @@ public class Player : MonoBehaviour
     public float staminaChargeCycle;        // 스태미나 충전 주기
 
     [Header("Attack")]
-    public float attackPower;
+    [SerializeField]
+    protected float attackPower;
     public float AttackPower { get { return attackPower; } }
 
     [Header("Move")]

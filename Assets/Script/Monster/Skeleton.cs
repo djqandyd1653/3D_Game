@@ -29,15 +29,17 @@ public class Skeleton : Monster
 
         private void OnEnable()
         {
-            skeleton.anim.Play("Idle");
-            changePatrolTime = 5f;
-            skeleton.anim.SetBool("IsIdle", true);
-            skeleton.state = MonsterData.State.Idle;
+            if (skeleton.state == MonsterData.State.Idle)
+            {
+                skeleton.anim.Play("Idle");
+                Debug.Log("Idle Animation Start");
+                changePatrolTime = 5f;
+            }
         }
 
         private void OnDisable()
         {
-            skeleton.anim.SetBool("IsIdle", false);
+
         }
 
         public void MonsterAction()
@@ -48,26 +50,27 @@ public class Skeleton : Monster
 
             if (skeleton.CalDistance(targetPos) < monsterData.SearchRange || changePatrolTime < 0f)
             {
-                ChangeState(GetComponent<Patrol>());
+                skeleton.state = MonsterData.State.Patrol;
+                ChangeComponent(GetComponent<Patrol>());
                 //monsterData.MonsterState = MonsterData.State.Patrol;  // (임시) 상태 변수가 꼭 필요한가?, monsterData에 들어있어야 하나?
                 Debug.Log("Idle -> Patrol");
                 return;
             }
         }
 
-        public void ChangeState(IMonsterAction nextState)
+        public void ChangeComponent(IMonsterAction nextComponent)
         {
             GetComponent<Idle>().enabled = false;
-            var _nextState = nextState as StateComponent;
+            var _nextComponent = nextComponent as StateComponent;
 
-            if (_nextState == null)
+            if (_nextComponent == null)
             {
                 Debug.LogError("Component에서 ISkeletonAction으로 형변환 실패 (Idle)");
                 return;
             }
 
-            _nextState.enabled = true;
-            skeleton.skeletonAction = nextState;
+            _nextComponent.enabled = true;
+            skeleton.skeletonAction = nextComponent;
         }
     }
 
@@ -79,14 +82,17 @@ public class Skeleton : Monster
         private float remainTime;
         private void OnEnable()
         {
-            remainTime = 2.5f;
-            skeleton.anim.SetBool("IsChase", true);
-            skeleton.state = MonsterData.State.Chase;
+            if(skeleton.state == MonsterData.State.Chase)
+            {
+                remainTime = 2.5f;
+                skeleton.anim.Play("Chase");
+                Debug.Log("Chase Animation Start");
+            }
         }
 
         private void OnDisable()
         {
-            skeleton.anim.SetBool("IsChase", false);
+
         }
 
         public void MonsterAction()
@@ -102,32 +108,34 @@ public class Skeleton : Monster
             // Chase -> Attack
             if (Mathf.Abs(skeleton.CalDistance(targetPos)) < monsterData.AttackRange)
             {
-                ChangeState(GetComponent<Attack>());
+                skeleton.state = MonsterData.State.Attack;
+                ChangeComponent(GetComponent<Attack>());
                 //monsterData.MonsterState = MonsterData.State.Attack; // (임시) 상태 변수가 꼭 필요한가?, monsterData에 들어있어야 하나?
             }
 
             // Chase -> Go Back
             if (remainTime < 0f && Mathf.Abs(skeleton.CalDistance(targetPos)) > monsterData.SearchRange)
             {
-                ChangeState(GetComponent<GoBack>());
+                skeleton.state = MonsterData.State.GoBack;
+                ChangeComponent(GetComponent<GoBack>());
                 //monsterData.MonsterState = MonsterData.State.GoBack; // (임시) 상태 변수가 꼭 필요한가?, monsterData에 들어있어야 하나?
             }
 
             skeleton.Move(targetPos, monsterData.MoveSpeed * 2, monsterData.RotateSpeed * 2); 
         }
 
-        public void ChangeState(IMonsterAction nextState)
+        public void ChangeComponent(IMonsterAction nextComponent)
         {
             GetComponent<Chase>().enabled = false;
-            var _nextState = nextState as StateComponent;
+            var _nextComponent = nextComponent as StateComponent;
 
-            if (_nextState == null)
+            if (_nextComponent == null)
             {
                 Debug.LogError("Component에서 ISkeletonAction으로 형변환 실패 (Chase)");
             }
 
-            _nextState.enabled = true;
-            skeleton.skeletonAction = nextState;
+            _nextComponent.enabled = true;
+            skeleton.skeletonAction = nextComponent;
         }
     }
 
@@ -141,16 +149,21 @@ public class Skeleton : Monster
 
         private void OnEnable()
         {
-            coroutine = ChangeDestPos();
-            skeleton.anim.SetBool("IsPatrol", true);
-            skeleton.state = MonsterData.State.Patrol;
-            StartCoroutine(coroutine);
+            if (skeleton.state == MonsterData.State.Patrol)
+            {
+                skeleton.anim.Play("Patrol");
+                Debug.Log("Patrol Animation Start");
+                coroutine = ChangeDestPos();
+                StartCoroutine(coroutine);
+            }
         }
 
         private void OnDisable()
         {
-            skeleton.anim.SetBool("IsPatrol", false);
-            StopCoroutine(coroutine);
+            if(coroutine != null)
+            {
+                StopCoroutine(coroutine);
+            }
         }
 
         public void MonsterAction()
@@ -163,7 +176,8 @@ public class Skeleton : Monster
         {
             if (Mathf.Abs(skeleton.CalDistance(destPos)) < 1)
             {
-                ChangeState(GetComponent<Idle>());
+                skeleton.state = MonsterData.State.Idle;
+                ChangeComponent(GetComponent<Idle>());
                 //monsterData.MonsterState = MonsterData.State.Idle; // (임시) 상태 변수가 꼭 필요한가?, monsterData에 들어있어야 하나?
                 Debug.Log("Patrol -> Idle");
             }
@@ -178,7 +192,8 @@ public class Skeleton : Monster
 
             if (skeleton.CalDistance(targetPos) < monsterData.SearchRange)
             {
-                ChangeState(GetComponent<Chase>());
+                skeleton.state = MonsterData.State.Chase;
+                ChangeComponent(GetComponent<Chase>());
                 //monsterData.MonsterState = MonsterData.State.Chase; // (임시) 상태 변수가 꼭 필요한가?, monsterData에 들어있어야 하나?
                 Debug.Log("Patrol -> Chase");
             }
@@ -196,18 +211,18 @@ public class Skeleton : Monster
             }
         }
 
-        public void ChangeState(IMonsterAction nextState)
+        public void ChangeComponent(IMonsterAction nextComponent)
         {
             GetComponent<Patrol>().enabled = false;
-            var _nextState = nextState as StateComponent;
+            var _nextComponent = nextComponent as StateComponent;
 
-            if (_nextState == null)
+            if (_nextComponent == null)
             {
                 Debug.LogError("Component에서 ISkeletonAction으로 형변환 실패 (Patrol)");
             }
 
-            _nextState.enabled = true;
-            skeleton.skeletonAction = nextState;
+            _nextComponent.enabled = true;
+            skeleton.skeletonAction = nextComponent;
         }
     }
 
@@ -218,13 +233,15 @@ public class Skeleton : Monster
     {
         private void OnEnable()
         {
-            skeleton.anim.SetBool("IsGoBack", true);
-            skeleton.state = MonsterData.State.GoBack;
+            if(skeleton.state == MonsterData.State.GoBack)
+            {
+                skeleton.anim.Play("GoBack");
+            }
         }
 
         private void OnDisable()
         {
-            skeleton.anim.SetBool("IsGoBack", false);
+
         }
 
         public void MonsterAction()
@@ -233,23 +250,24 @@ public class Skeleton : Monster
 
             if (Mathf.Abs(skeleton.CalDistance(skeleton.originPos)) < 1)
             {
-                ChangeState(GetComponent<Idle>());
+                skeleton.state = MonsterData.State.Idle;
+                ChangeComponent(GetComponent<Idle>());
                 //monsterData.MonsterState = MonsterData.State.Idle; // (임시) 상태 변수가 꼭 필요한가?, monsterData에 들어있어야 하나?
             }
         }
 
-        public void ChangeState(IMonsterAction nextState)
+        public void ChangeComponent(IMonsterAction nextComponent)
         {
             GetComponent<GoBack>().enabled = false;
-            var _nextState = nextState as StateComponent;
+            var _nextComponent = nextComponent as StateComponent;
 
-            if (_nextState == null)
+            if (_nextComponent == null)
             {
                 Debug.LogError("Component에서 ISkeletonAction으로 형변환 실패 (Patrol)");
             }
 
-            _nextState.enabled = true;
-            skeleton.skeletonAction = nextState;
+            _nextComponent.enabled = true;
+            skeleton.skeletonAction = nextComponent;
         }
     }
 
@@ -260,37 +278,41 @@ public class Skeleton : Monster
     {
         private void OnEnable()
         {
-            skeleton.anim.SetBool("IsAttack", true);
-            skeleton.state = MonsterData.State.Attack;
+            if(skeleton.state == MonsterData.State.Attack)
+            {
+                skeleton.anim.Play("Attack");
+                Debug.Log("Attack Animation Start");
+            }
         }
 
         private void OnDisable()
         {
-            skeleton.anim.SetBool("IsAttack", false);
+            
         }
 
         public void MonsterAction()
         {
             if (skeleton.anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1f)
             {
-                ChangeState(GetComponent<Chase>());
+                skeleton.state = MonsterData.State.Chase;
+                ChangeComponent(GetComponent<Chase>());
                 //monsterData.MonsterState = MonsterData.State.Chase; // (임시) 상태 변수가 꼭 필요한가?, monsterData에 들어있어야 하나?
                 //Debug.Log("Attack에서 ChangeState");
             }
         }
 
-        public void ChangeState(IMonsterAction nextState)
+        public void ChangeComponent(IMonsterAction nextComponent)
         {
             GetComponent<Attack>().enabled = false;
-            var _nextState = nextState as StateComponent;
+            var _nextComponent = nextComponent as StateComponent;
 
-            if (_nextState == null)
+            if (_nextComponent == null)
             {
                 Debug.LogError("ISkeletonAction에서 Component로 형변환 실패 (Attack)");
             }
 
-            _nextState.enabled = true;
-            skeleton.skeletonAction = nextState;
+            _nextComponent.enabled = true;
+            skeleton.skeletonAction = nextComponent;
         }
     }
 
@@ -301,7 +323,10 @@ public class Skeleton : Monster
     {
         private void OnEnable()
         {
-            skeleton.state = MonsterData.State.Hit;
+            if(skeleton.state == MonsterData.State.Hit)
+            {
+                skeleton.anim.Play("Hit");
+            }
         }
 
         private void OnDisable()
@@ -313,34 +338,36 @@ public class Skeleton : Monster
         {
             if(skeleton.hp <= 0)
             {
-                ChangeState(GetComponent<Die>());
+                skeleton.state = MonsterData.State.Die;
+                ChangeComponent(GetComponent<Die>());
                 Debug.Log("Hit -> Die");
             }
 
             if(!skeleton.anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.Hit"))
             {
-                skeleton.anim.Play("Hit");
+                //skeleton.anim.Play("Hit");
             }
 
             if(skeleton.anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1)
             {
-                ChangeState(GetComponent<Idle>());
+                skeleton.state = MonsterData.State.Idle;
+                ChangeComponent(GetComponent<Idle>());
                 Debug.Log("Hit -> Idle");
             }
         }
 
-        public void ChangeState(IMonsterAction nextState)
+        public void ChangeComponent(IMonsterAction nextComponent)
         {
             GetComponent<Hit>().enabled = false;
-            var _nextState = nextState as StateComponent;
+            var _nextComponent = nextComponent as StateComponent;
 
-            if(_nextState == null)
+            if(_nextComponent == null)
             {
                 Debug.LogError("ISkeletonAction에서 Component로 형변환 실패 (Hit)");
             }
 
-            _nextState.enabled = true;
-            skeleton.skeletonAction = nextState;
+            _nextComponent.enabled = true;
+            skeleton.skeletonAction = nextComponent;
         }
     }
 
@@ -351,10 +378,9 @@ public class Skeleton : Monster
     {
         private void OnEnable()
         {
-            if(skeleton.hp <= 0)
+            if(skeleton.state == MonsterData.State.Die)
             {
                 skeleton.anim.Play("Die");
-                skeleton.state = MonsterData.State.Die;
             }
         }
 
@@ -363,23 +389,24 @@ public class Skeleton : Monster
             if (skeleton.anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1)
             {
                 GameEvent.Instance.OnEventMonsterDead(this.gameObject, skeleton.originPos, monsterData.MonsterName, monsterData.RespawnTime);
-                ChangeState(GetComponent<Idle>());
+                skeleton.state = MonsterData.State.Idle;
+                ChangeComponent(GetComponent<Idle>());
                 Debug.Log("Die에서 ChangeState");
             }
         }
 
-        public void ChangeState(IMonsterAction nextState)
+        public void ChangeComponent(IMonsterAction nextComponent)
         {
             GetComponent<Die>().enabled = false;
-            var _nextState = nextState as StateComponent;
+            var _nextComponent = nextComponent as StateComponent;
 
-            if (_nextState == null)
+            if (_nextComponent == null)
             {
                 Debug.LogError("ISkeletonAction에서 Component로 형변환 실패 (Die)");
             }
 
-            _nextState.enabled = true;
-            skeleton.skeletonAction = nextState;
+            _nextComponent.enabled = true;
+            skeleton.skeletonAction = nextComponent;
         }
     }
 
@@ -393,13 +420,13 @@ public class Skeleton : Monster
     {
         originPos = transform.position;                             // (임시) 시작위치 저장 시스템 구축 후 데이터 전달받기
         hp = monsterData.Hp;
+        state = MonsterData.State.Idle;
     }
 
     private void Start()
     {
         target = GameObject.FindGameObjectWithTag("Player");        // (임시) 타겟을 지정받는 방법 생각해보자
         
-
         skeletonAction = gameObject.AddComponent<Idle>();
         gameObject.AddComponent<Chase>().enabled = false;
         gameObject.AddComponent<Patrol>().enabled = false;
@@ -407,7 +434,6 @@ public class Skeleton : Monster
         gameObject.AddComponent<Attack>().enabled = false;
         gameObject.AddComponent<Hit>().enabled = false;
         gameObject.AddComponent<Die>().enabled = false;
-
     }
 
     private void Update()
@@ -442,18 +468,30 @@ public class Skeleton : Monster
         return distanceFromTarget;
     }
 
-    private void OnCollisionEnter(Collision collision)
+    private void OnTriggerEnter(Collider other)
     {
-        if(collision.collider.CompareTag("Weapon"))
+        if (other.CompareTag("Weapon"))
         {
-            if (state == MonsterData.State.Hit || state == MonsterData.State.Die)
-                return;
+            var player = target.GetComponent<PlayerController>();
+            float animationTime = player.CurrAnimationNormalizedTime();
 
-            var player = target.GetComponent<Player>();
+            if (animationTime > 0.5f)
+            {
+                return;
+            }
+
             if (player.PlayerState == Player.State.Attack01 || player.PlayerState == Player.State.Attack02)
             {
                 hp -= player.AttackPower;
-                skeletonAction.ChangeState(GetComponent<Hit>());
+
+                if(state == MonsterData.State.Hit)
+                {
+                    anim.Play("Hit", -1, 0);
+                    return;
+                }
+
+                state = MonsterData.State.Hit;
+                skeletonAction.ChangeComponent(GetComponent<Hit>());
                 Debug.Log("Hit!!");
             }
         }

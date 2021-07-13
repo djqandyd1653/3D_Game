@@ -5,7 +5,7 @@ using UnityEngine;
 interface IMonsterAction
 {
     void MonsterAction();
-    void ChangeState(IMonsterAction nextAction);
+    void ChangeComponent(IMonsterAction nextComponent);
 }
 
 public class MonsterInterface : MonoBehaviour

@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : Player
 {
     public PlayerAction playerAction;
     public Animator anim;
-    private Player player;
 
     public interface PlayerAction
     {
@@ -15,13 +14,11 @@ public class PlayerController : MonoBehaviour
 
     protected class StateComponent : MonoBehaviour
     {
-        protected PlayerController playerCtrl;
-        protected Player player;
+        protected PlayerController player;
 
         protected void Start()
         {
-            playerCtrl = GetComponent<PlayerController>();
-            player = playerCtrl.player;
+            player = GetComponent<PlayerController>();
         }
     }
 
@@ -58,19 +55,17 @@ public class PlayerController : MonoBehaviour
 
     private class Move : StateComponent, PlayerAction
     {
-        Rigidbody rigid;
         Vector3 moveVec;
 
         new void Start()
         {
             base.Start();
-            rigid = player.rigid;
         }
 
         public void Action()
         {
             moveVec = transform.forward * player.vertical + transform.right * player.horizontal;
-            rigid.MovePosition(transform.position + moveVec.normalized * player.moveSpeed * Time.smoothDeltaTime);
+            player.rigid.MovePosition(transform.position + moveVec.normalized * player.moveSpeed * Time.smoothDeltaTime);
         }
     }
 
@@ -96,20 +91,20 @@ public class PlayerController : MonoBehaviour
     {
         public void Action()
         {
-            if (playerCtrl.anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.Attack01") && player.state == Player.State.Attack01)
+            if (player.anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.Attack01") && player.state == Player.State.Attack01)
             {
-                if (playerCtrl.anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 0.9f)
-                    playerCtrl.ChangeComponent(GetComponent<Idle>(), Player.State.Idle);
+                if (player.anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 0.9f)
+                    player.ChangeComponent(GetComponent<Idle>(), Player.State.Idle);
 
-                else if (playerCtrl.anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 0.4f &&
+                else if (player.anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 0.4f &&
                     Input.GetMouseButtonDown(0))
-                    playerCtrl.ChangeState(Player.State.Attack02);
+                    player.ChangeState(Player.State.Attack02);
             }
 
-            if (playerCtrl.anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.Attack02") &&
-                playerCtrl.anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1f &&
-                playerCtrl.player.state == Player.State.Attack02)
-                playerCtrl.ChangeComponent(GetComponent<Idle>(), Player.State.Idle);
+            if (player.anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.Attack02") &&
+                player.anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1f &&
+                player.state == Player.State.Attack02)
+                player.ChangeComponent(GetComponent<Idle>(), Player.State.Idle);
         }
     }
 
@@ -142,10 +137,9 @@ public class PlayerController : MonoBehaviour
         gameObject.AddComponent<Attack>();
         gameObject.AddComponent<Hit>();
 
-        player = GetComponent<Player>();
         playerAction = GetComponent<Idle>();
-        player.state = Player.State.Idle;
-        player.rigid = GetComponent<Rigidbody>();
+        state = Player.State.Idle;
+        rigid = GetComponent<Rigidbody>();
     }
 
     void Update()
@@ -161,12 +155,12 @@ public class PlayerController : MonoBehaviour
         ChangeState(state);
     }
 
-    void ChangeState(Player.State state)
+    void ChangeState(Player.State _state)
     {
-        string strCurrState = "Is" + player.state.ToString();
+        string strCurrState = "Is" + state.ToString();
         anim.SetBool(strCurrState, false);
 
-        player.state = state;
+        state = _state;
 
         strCurrState = "Is" + state.ToString();
         anim.SetBool(strCurrState, true);
@@ -175,19 +169,19 @@ public class PlayerController : MonoBehaviour
 
     void InputKey()
     {
-        player.vertical = Input.GetAxisRaw("Vertical");
-        player.horizontal = Input.GetAxisRaw("Horizontal");
+        vertical = Input.GetAxisRaw("Vertical");
+        horizontal = Input.GetAxisRaw("Horizontal");
 
-        if ((player.state == Player.State.Idle || player.state == Player.State.Move) &&
+        if ((state == Player.State.Idle || state == Player.State.Move) &&
             (anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.Idle_Battle") || 
             anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.WalkForward") || 
             anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.WalkSide")))
             MoveInput();
 
-        if (player.state == Player.State.Move || player.state == Player.State.Run)
+        if (state == Player.State.Move || state == Player.State.Run)
             RunInput();
 
-        if (player.state != Player.State.Hit || player.state != Player.State.Die)
+        if (state != Player.State.Hit || state != Player.State.Die)
             AttackInput();
 
         HitInput(); // OnCollisionEnter에 사용예정
@@ -195,9 +189,9 @@ public class PlayerController : MonoBehaviour
 
     void MoveRotation()
     {
-        if (player.vertical != 0 && player.horizontal != 0)
+        if (vertical != 0 && horizontal != 0)
         {
-            float dir = player.vertical * player.horizontal;
+            float dir = vertical * horizontal;
 
             if(transform.GetChild(0).transform.rotation == transform.rotation)
                 transform.GetChild(0).transform.rotation *= Quaternion.Euler(new Vector3(0, dir * 45, 0));
@@ -211,14 +205,14 @@ public class PlayerController : MonoBehaviour
 
     void MoveInput()
     {
-        if (player.vertical != 0 || player.horizontal != 0)
+        if (vertical != 0 || horizontal != 0)
         {
             ChangeComponent(GetComponent<Move>(), Player.State.Move);
 
-            anim.SetFloat("Vertical", player.vertical);
-            anim.SetFloat("Horizontal", player.horizontal);
+            anim.SetFloat("Vertical", vertical);
+            anim.SetFloat("Horizontal", horizontal);
 
-            if (player.vertical != 0)
+            if (vertical != 0)
             {
                 anim.SetBool("ISMoveForward", true);
                 return;
@@ -227,28 +221,28 @@ public class PlayerController : MonoBehaviour
             anim.SetBool("ISMoveForward", false);
         }
 
-        if (player.vertical == 0 && player.horizontal == 0)
+        if (vertical == 0 && horizontal == 0)
             ChangeComponent(GetComponent<Idle>(), Player.State.Idle);
     }
 
     void RunInput()
     {
-        if (player.vertical > 0 && Input.GetKey(KeyCode.LeftShift))
+        if (vertical > 0 && Input.GetKey(KeyCode.LeftShift))
             ChangeComponent(GetComponent<Run>(), Player.State.Run);
 
-        if (Input.GetKeyUp(KeyCode.LeftShift) || player.vertical <= 0)
+        if (Input.GetKeyUp(KeyCode.LeftShift) || vertical <= 0)
             ChangeComponent(GetComponent<Move>(), Player.State.Move);
     }
 
     void AttackInput()
     {
-        if (Input.GetMouseButtonDown(0) && player.state != Player.State.Attack01 && player.state != Player.State.Attack02)
+        if (Input.GetMouseButtonDown(0) && state != Player.State.Attack01 && state != Player.State.Attack02)
             ChangeComponent(GetComponent<Attack>(), Player.State.Attack01);
     }
 
     void HitInput()
     {
-        if(Input.GetKeyDown(KeyCode.P) && player.state != Player.State.Hit)
+        if(Input.GetKeyDown(KeyCode.P) && state != Player.State.Hit)
         {
             ChangeComponent(GetComponent<Hit>(), Player.State.Hit);
         }
@@ -265,6 +259,27 @@ public class PlayerController : MonoBehaviour
         MoveRotation();
 
         float mouseX = Input.GetAxis("Mouse X");
-        transform.Rotate(Vector3.up * player.rotateSpeed * mouseX);
+        transform.Rotate(Vector3.up * rotateSpeed * mouseX);
+    }
+
+    public float CurrAnimationNormalizedTime()
+    {
+        return anim.GetCurrentAnimatorStateInfo(0).normalizedTime;
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if(other.CompareTag("Monster Weapon"))
+        {
+            var monster = other.transform.parent.transform.parent;
+            float animationTime = monster.GetComponent<Animator>().GetCurrentAnimatorStateInfo(0).normalizedTime;
+
+            if (animationTime < 0.3f || animationTime > 0.4f)
+            {
+                return;
+            }
+
+            hp -= monster.GetComponent<Monster>().monsterData.AttackPower;
+        }
     }
 }
