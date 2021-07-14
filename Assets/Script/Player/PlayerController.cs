@@ -7,6 +7,9 @@ public class PlayerController : Player
     public PlayerAction playerAction;
     public Animator anim;
 
+    // test
+    bool isHit = false;
+
     public interface PlayerAction
     {
         void Action();
@@ -34,12 +37,26 @@ public class PlayerController : Player
 
         public void Action()
         {
+            // 움직임이 있으면 Move로 상태변환
+            if (player.vertical != 0 || player.horizontal != 0)
+            {
+                player.ChangeComponent(GetComponent<Move>(), State.Move, 0.25f);
+                return;
+            }
+
+            // 마우스 왼쪽버튼 누르면 Attack으로 상태변환
+            if(Input.GetMouseButtonDown(0))
+            {
+                player.ChangeComponent(GetComponent<Attack>(), State.Attack01);
+            }
+
+            // 스테미나 충전
             ChargeStamina();
         }
 
         void ChargeStamina()
         {
-            
+
             if (player.stamina >= player.maxStamina)
                 return;
 
@@ -55,35 +72,47 @@ public class PlayerController : Player
 
     private class Move : StateComponent, PlayerAction
     {
-        Vector3 moveVec;
-
-        new void Start()
-        {
-            base.Start();
-        }
-
         public void Action()
         {
-            moveVec = transform.forward * player.vertical + transform.right * player.horizontal;
-            player.rigid.MovePosition(transform.position + moveVec.normalized * player.moveSpeed * Time.smoothDeltaTime);
+            // 마우스 왼쪽버튼 누르면 Attack으로 상태변환
+            if (Input.GetMouseButtonDown(0))
+            {
+                player.ChangeComponent(GetComponent<Attack>(), State.Attack01);
+            }
+
+            // 왼쪽 쉬프트키가 눌려있으면 Run으로 상태변환
+            if (Input.GetKey(KeyCode.LeftShift) && player.vertical != 0)
+            {
+                player.ChangeComponent(GetComponent<Run>(), State.Run, 0.25f);
+            }
+
+            // 이동속도가 0이면 Idle로 상태변환
+            if (player.vertical == 0 && player.horizontal == 0)
+            {
+                player.ChangeComponent(GetComponent<Idle>(), State.Idle, 0.25f);
+            }
+
+            player.PlayerMove(player.moveSpeed);
         }
     }
 
     private class Run : StateComponent, PlayerAction
     {
-        Rigidbody rigid;
-        Vector3 moveVec;
-
-        new void Start()
-        {
-            base.Start();
-            rigid = player.rigid;
-        }
-
         public void Action()
         {
-            moveVec = transform.forward * player.vertical + transform.right * player.horizontal;
-            rigid.MovePosition(transform.position + moveVec.normalized * player.runSpeed * Time.smoothDeltaTime);
+            // 마우스 왼쪽버튼 누르면 Attack으로 상태변환
+            if (Input.GetMouseButtonDown(0))
+            {
+                player.ChangeComponent(GetComponent<Attack>(), State.Attack01);
+            }
+
+            // 왼쪽 쉬프트키가 눌려있다가 떨어지면 Idle로 상태변환
+            if (!Input.GetKey(KeyCode.LeftShift) || player.vertical == 0)
+            {
+                player.ChangeComponent(GetComponent<Idle>(), State.Idle, 0.25f);
+            }
+
+            player.PlayerMove(player.runSpeed);
         }
     }
 
@@ -91,33 +120,32 @@ public class PlayerController : Player
     {
         public void Action()
         {
-            if (player.anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.Attack01") && player.state == Player.State.Attack01)
+            if (player.state == State.Attack01)
             {
-                if (player.anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 0.9f)
-                    player.ChangeComponent(GetComponent<Idle>(), Player.State.Idle);
-
-                else if (player.anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 0.4f &&
+                // 0.5f ~ 0.7f에 2차공격 시도했으면 2차공격으로 상태변환
+                if (player.anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 0.5f &&
+                    player.anim.GetCurrentAnimatorStateInfo(0).normalizedTime <= 0.7f &&
                     Input.GetMouseButtonDown(0))
-                    player.ChangeState(Player.State.Attack02);
+                {
+                    player.ChangeState(State.Attack02, 0.25f);
+                }
             }
 
-            if (player.anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.Attack02") &&
-                player.anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1f &&
-                player.state == Player.State.Attack02)
-                player.ChangeComponent(GetComponent<Idle>(), Player.State.Idle);
+            if (player.anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1f)
+            {
+                player.ChangeComponent(GetComponent<Idle>(), State.Idle);
+            }
         }
     }
 
     private class Hit : StateComponent, PlayerAction
     {
-        new void Start()
-        {
-            base.Start();
-        }
-
         public void Action()
         {
-            player.hp--;
+            if (player.anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 0.7f)
+            {
+                player.ChangeComponent(GetComponent<Idle>(), State.Idle, 0.25f);
+            }
         }
     }
 
@@ -125,136 +153,111 @@ public class PlayerController : Player
     {
         public void Action()
         {
-
+            if (player.anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1f)
+            {
+                player.ChangeComponent(GetComponent<Idle>(), State.Idle);
+                Debug.Log("게임 종료");
+            }
         }
     }
 
-    void Start()
+    private void Start()
     {
         gameObject.AddComponent<Idle>();
         gameObject.AddComponent<Move>();
         gameObject.AddComponent<Run>();
         gameObject.AddComponent<Attack>();
         gameObject.AddComponent<Hit>();
+        gameObject.AddComponent<Die>();
 
         playerAction = GetComponent<Idle>();
-        state = Player.State.Idle;
+        state = State.Idle;
         rigid = GetComponent<Rigidbody>();
     }
 
-    void Update()
+    private void Update()
     {
         playerAction.Action();
         InputKey();
         Rotate();
+        AAA();
+
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            ChangeComponent(GetComponent<Hit>(), State.Hit);
+        }
     }
 
-    void ChangeComponent(PlayerAction newAction, Player.State state)
+    private void ChangeComponent(PlayerAction newAction, State state, float transitionDuraingTime = 0)
     {
+        ChangeState(state, transitionDuraingTime);
         playerAction = newAction;
-        ChangeState(state);
     }
 
-    void ChangeState(Player.State _state)
+    private void ChangeState(State _state, float transitionDuraingTime = 0)
     {
-        string strCurrState = "Is" + state.ToString();
-        anim.SetBool(strCurrState, false);
+        state = _state; // 매개변수를 nextStae로
 
-        state = _state;
+        string strNextState = null;
 
-        strCurrState = "Is" + state.ToString();
-        anim.SetBool(strCurrState, true);
-        anim.SetTrigger(strCurrState);
+        if (state == State.Move)
+        {
+            strNextState = (vertical == 0) ? "Walk Side" : "Walk Forward";
+        }
+        else
+        {
+            strNextState = state.ToString();
+        }
+
+        if(transitionDuraingTime == 0f)
+        {
+            anim.Play(strNextState);
+        }
+        else
+        {
+            anim.CrossFade(strNextState, transitionDuraingTime);
+        }
+    }
+
+    // 플레이어 움직임
+    private void PlayerMove(float speed)
+    {
+        Vector3 moveVec = transform.forward * vertical + transform.right * horizontal;
+        rigid.MovePosition(transform.position + moveVec.normalized * speed * Time.smoothDeltaTime);
     }
 
     void InputKey()
     {
         vertical = Input.GetAxisRaw("Vertical");
         horizontal = Input.GetAxisRaw("Horizontal");
-
-        if ((state == Player.State.Idle || state == Player.State.Move) &&
-            (anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.Idle_Battle") || 
-            anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.WalkForward") || 
-            anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.WalkSide")))
-            MoveInput();
-
-        if (state == Player.State.Move || state == Player.State.Run)
-            RunInput();
-
-        if (state != Player.State.Hit || state != Player.State.Die)
-            AttackInput();
-
-        HitInput(); // OnCollisionEnter에 사용예정
+        anim.SetFloat("Vertical", vertical);
+        anim.SetFloat("Horizontal", horizontal);
     }
 
     void MoveRotation()
     {
+        // 플레이어가 대각선 이동 중일때
         if (vertical != 0 && horizontal != 0)
         {
             float dir = vertical * horizontal;
 
+            // 플레이어 회전방향과 플레이어 바디 회전방향이 같으면 45도 회전
             if(transform.GetChild(0).transform.rotation == transform.rotation)
+            {
                 transform.GetChild(0).transform.rotation *= Quaternion.Euler(new Vector3(0, dir * 45, 0));
+            }
         }   
         else
         {
             if (transform.GetChild(0).transform.rotation != transform.rotation)
-                transform.GetChild(0).transform.rotation = transform.rotation;
-        }
-    }
-
-    void MoveInput()
-    {
-        if (vertical != 0 || horizontal != 0)
-        {
-            ChangeComponent(GetComponent<Move>(), Player.State.Move);
-
-            anim.SetFloat("Vertical", vertical);
-            anim.SetFloat("Horizontal", horizontal);
-
-            if (vertical != 0)
             {
-                anim.SetBool("ISMoveForward", true);
-                return;
+                transform.GetChild(0).transform.rotation = transform.rotation;
             }
-
-            anim.SetBool("ISMoveForward", false);
-        }
-
-        if (vertical == 0 && horizontal == 0)
-            ChangeComponent(GetComponent<Idle>(), Player.State.Idle);
-    }
-
-    void RunInput()
-    {
-        if (vertical > 0 && Input.GetKey(KeyCode.LeftShift))
-            ChangeComponent(GetComponent<Run>(), Player.State.Run);
-
-        if (Input.GetKeyUp(KeyCode.LeftShift) || vertical <= 0)
-            ChangeComponent(GetComponent<Move>(), Player.State.Move);
-    }
-
-    void AttackInput()
-    {
-        if (Input.GetMouseButtonDown(0) && state != Player.State.Attack01 && state != Player.State.Attack02)
-            ChangeComponent(GetComponent<Attack>(), Player.State.Attack01);
-    }
-
-    void HitInput()
-    {
-        if(Input.GetKeyDown(KeyCode.P) && state != Player.State.Hit)
-        {
-            ChangeComponent(GetComponent<Hit>(), Player.State.Hit);
-        }
-
-        if (anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.GetHit") &&
-            anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 0.9f)
-        {
-            ChangeComponent(GetComponent<Idle>(), Player.State.Idle);
         }
     }
 
-    void Rotate()
+    // 회전
+    private void Rotate()
     {
         MoveRotation();
 
@@ -262,11 +265,23 @@ public class PlayerController : Player
         transform.Rotate(Vector3.up * rotateSpeed * mouseX);
     }
 
+    // 현재 재생중인 애니메이션의 정규화된 시간을 반환
     public float CurrAnimationNormalizedTime()
     {
         return anim.GetCurrentAnimatorStateInfo(0).normalizedTime;
     }
 
+    private void AAA()
+    {
+        if(isHit)
+        {
+            hp -= 3;
+            ChangeComponent(GetComponent<Hit>(), State.Hit);
+            isHit = false;
+        }
+        
+    }
+    // 적 무기와 충돌
     private void OnTriggerEnter(Collider other)
     {
         if(other.CompareTag("Monster Weapon"))
@@ -274,12 +289,14 @@ public class PlayerController : Player
             var monster = other.transform.parent.transform.parent;
             float animationTime = monster.GetComponent<Animator>().GetCurrentAnimatorStateInfo(0).normalizedTime;
 
-            if (animationTime < 0.3f || animationTime > 0.4f)
+            if (animationTime < 0.33f || animationTime > 0.37f)
             {
                 return;
             }
 
-            hp -= monster.GetComponent<Monster>().monsterData.AttackPower;
+            isHit = true;
+            //hp -= monster.GetComponent<Monster>().monsterData.AttackPower;
+            //ChangeComponent(GetComponent<Hit>(), State.Hit);
         }
     }
 }

@@ -32,14 +32,8 @@ public class Skeleton : Monster
             if (skeleton.state == MonsterData.State.Idle)
             {
                 skeleton.anim.Play("Idle");
-                Debug.Log("Idle Animation Start");
                 changePatrolTime = 5f;
             }
-        }
-
-        private void OnDisable()
-        {
-
         }
 
         public void MonsterAction()
@@ -52,8 +46,6 @@ public class Skeleton : Monster
             {
                 skeleton.state = MonsterData.State.Patrol;
                 ChangeComponent(GetComponent<Patrol>());
-                //monsterData.MonsterState = MonsterData.State.Patrol;  // (임시) 상태 변수가 꼭 필요한가?, monsterData에 들어있어야 하나?
-                Debug.Log("Idle -> Patrol");
                 return;
             }
         }
@@ -80,19 +72,14 @@ public class Skeleton : Monster
     private class Chase : StateComponent, IMonsterAction
     {
         private float remainTime;
+
         private void OnEnable()
         {
             if(skeleton.state == MonsterData.State.Chase)
             {
                 remainTime = 2.5f;
                 skeleton.anim.Play("Chase");
-                Debug.Log("Chase Animation Start");
             }
-        }
-
-        private void OnDisable()
-        {
-
         }
 
         public void MonsterAction()
@@ -110,7 +97,6 @@ public class Skeleton : Monster
             {
                 skeleton.state = MonsterData.State.Attack;
                 ChangeComponent(GetComponent<Attack>());
-                //monsterData.MonsterState = MonsterData.State.Attack; // (임시) 상태 변수가 꼭 필요한가?, monsterData에 들어있어야 하나?
             }
 
             // Chase -> Go Back
@@ -118,7 +104,6 @@ public class Skeleton : Monster
             {
                 skeleton.state = MonsterData.State.GoBack;
                 ChangeComponent(GetComponent<GoBack>());
-                //monsterData.MonsterState = MonsterData.State.GoBack; // (임시) 상태 변수가 꼭 필요한가?, monsterData에 들어있어야 하나?
             }
 
             skeleton.Move(targetPos, monsterData.MoveSpeed * 2, monsterData.RotateSpeed * 2); 
@@ -152,7 +137,6 @@ public class Skeleton : Monster
             if (skeleton.state == MonsterData.State.Patrol)
             {
                 skeleton.anim.Play("Patrol");
-                Debug.Log("Patrol Animation Start");
                 coroutine = ChangeDestPos();
                 StartCoroutine(coroutine);
             }
@@ -178,8 +162,6 @@ public class Skeleton : Monster
             {
                 skeleton.state = MonsterData.State.Idle;
                 ChangeComponent(GetComponent<Idle>());
-                //monsterData.MonsterState = MonsterData.State.Idle; // (임시) 상태 변수가 꼭 필요한가?, monsterData에 들어있어야 하나?
-                Debug.Log("Patrol -> Idle");
             }
 
             skeleton.Move(destPos, monsterData.MoveSpeed, monsterData.RotateSpeed);
@@ -194,8 +176,6 @@ public class Skeleton : Monster
             {
                 skeleton.state = MonsterData.State.Chase;
                 ChangeComponent(GetComponent<Chase>());
-                //monsterData.MonsterState = MonsterData.State.Chase; // (임시) 상태 변수가 꼭 필요한가?, monsterData에 들어있어야 하나?
-                Debug.Log("Patrol -> Chase");
             }
         }
 
@@ -239,11 +219,6 @@ public class Skeleton : Monster
             }
         }
 
-        private void OnDisable()
-        {
-
-        }
-
         public void MonsterAction()
         {
             skeleton.Move(skeleton.originPos, monsterData.MoveSpeed * 2, monsterData.RotateSpeed * 4);
@@ -252,7 +227,6 @@ public class Skeleton : Monster
             {
                 skeleton.state = MonsterData.State.Idle;
                 ChangeComponent(GetComponent<Idle>());
-                //monsterData.MonsterState = MonsterData.State.Idle; // (임시) 상태 변수가 꼭 필요한가?, monsterData에 들어있어야 하나?
             }
         }
 
@@ -281,13 +255,7 @@ public class Skeleton : Monster
             if(skeleton.state == MonsterData.State.Attack)
             {
                 skeleton.anim.Play("Attack");
-                Debug.Log("Attack Animation Start");
             }
-        }
-
-        private void OnDisable()
-        {
-            
         }
 
         public void MonsterAction()
@@ -296,8 +264,6 @@ public class Skeleton : Monster
             {
                 skeleton.state = MonsterData.State.Chase;
                 ChangeComponent(GetComponent<Chase>());
-                //monsterData.MonsterState = MonsterData.State.Chase; // (임시) 상태 변수가 꼭 필요한가?, monsterData에 들어있어야 하나?
-                //Debug.Log("Attack에서 ChangeState");
             }
         }
 
@@ -329,30 +295,18 @@ public class Skeleton : Monster
             }
         }
 
-        private void OnDisable()
-        {
-
-        }
-
         public void MonsterAction()
         {
             if(skeleton.hp <= 0)
             {
                 skeleton.state = MonsterData.State.Die;
                 ChangeComponent(GetComponent<Die>());
-                Debug.Log("Hit -> Die");
-            }
-
-            if(!skeleton.anim.GetCurrentAnimatorStateInfo(0).IsName("Base Layer.Hit"))
-            {
-                //skeleton.anim.Play("Hit");
             }
 
             if(skeleton.anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1)
             {
                 skeleton.state = MonsterData.State.Idle;
                 ChangeComponent(GetComponent<Idle>());
-                Debug.Log("Hit -> Idle");
             }
         }
 
@@ -391,7 +345,6 @@ public class Skeleton : Monster
                 GameEvent.Instance.OnEventMonsterDead(this.gameObject, skeleton.originPos, monsterData.MonsterName, monsterData.RespawnTime);
                 skeleton.state = MonsterData.State.Idle;
                 ChangeComponent(GetComponent<Idle>());
-                Debug.Log("Die에서 ChangeState");
             }
         }
 
@@ -492,7 +445,6 @@ public class Skeleton : Monster
 
                 state = MonsterData.State.Hit;
                 skeletonAction.ChangeComponent(GetComponent<Hit>());
-                Debug.Log("Hit!!");
             }
         }
     }
