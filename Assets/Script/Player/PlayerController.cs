@@ -7,9 +7,6 @@ public class PlayerController : Player
     public PlayerAction playerAction;
     public Animator anim;
 
-    // test
-    bool isHit = false;
-
     public interface PlayerAction
     {
         void Action();
@@ -142,9 +139,10 @@ public class PlayerController : Player
     {
         public void Action()
         {
-            if (player.anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 0.7f)
+            if (player.anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1f &&
+                player.anim.GetCurrentAnimatorStateInfo(0).IsName("Hit"))
             {
-                player.ChangeComponent(GetComponent<Idle>(), State.Idle, 0.25f);
+                player.ChangeComponent(GetComponent<Idle>(), State.Idle);
             }
         }
     }
@@ -153,7 +151,8 @@ public class PlayerController : Player
     {
         public void Action()
         {
-            if (player.anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1f)
+            if (player.anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1f &&
+                player.anim.GetCurrentAnimatorStateInfo(0).IsName("Die"))
             {
                 player.ChangeComponent(GetComponent<Idle>(), State.Idle);
                 Debug.Log("게임 종료");
@@ -180,12 +179,6 @@ public class PlayerController : Player
         playerAction.Action();
         InputKey();
         Rotate();
-        AAA();
-
-        if (Input.GetKeyDown(KeyCode.P))
-        {
-            ChangeComponent(GetComponent<Hit>(), State.Hit);
-        }
     }
 
     private void ChangeComponent(PlayerAction newAction, State state, float transitionDuraingTime = 0)
@@ -212,11 +205,10 @@ public class PlayerController : Player
         if(transitionDuraingTime == 0f)
         {
             anim.Play(strNextState);
+            return;
         }
-        else
-        {
-            anim.CrossFade(strNextState, transitionDuraingTime);
-        }
+
+        anim.CrossFade(strNextState, transitionDuraingTime);
     }
 
     // 플레이어 움직임
@@ -271,16 +263,6 @@ public class PlayerController : Player
         return anim.GetCurrentAnimatorStateInfo(0).normalizedTime;
     }
 
-    private void AAA()
-    {
-        if(isHit)
-        {
-            hp -= 3;
-            ChangeComponent(GetComponent<Hit>(), State.Hit);
-            isHit = false;
-        }
-        
-    }
     // 적 무기와 충돌
     private void OnTriggerEnter(Collider other)
     {
@@ -294,9 +276,15 @@ public class PlayerController : Player
                 return;
             }
 
-            isHit = true;
-            //hp -= monster.GetComponent<Monster>().monsterData.AttackPower;
-            //ChangeComponent(GetComponent<Hit>(), State.Hit);
+            hp -= monster.GetComponent<Monster>().monsterData.AttackPower;
+
+            if(hp <= 0)
+            {
+                ChangeComponent(GetComponent<Die>(), State.Die);
+                return;
+            }
+
+            ChangeComponent(GetComponent<Hit>(), State.Hit);
         }
     }
 }

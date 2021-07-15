@@ -91,6 +91,7 @@ public class Skeleton : Monster
         private void ChaseMove()
         {
             Vector3 targetPos = skeleton.target.transform.position;
+            skeleton.Move(targetPos, monsterData.MoveSpeed * 2, monsterData.RotateSpeed * 2);
 
             // Chase -> Attack
             if (Mathf.Abs(skeleton.CalDistance(targetPos)) < monsterData.AttackRange)
@@ -105,8 +106,6 @@ public class Skeleton : Monster
                 skeleton.state = MonsterData.State.GoBack;
                 ChangeComponent(GetComponent<GoBack>());
             }
-
-            skeleton.Move(targetPos, monsterData.MoveSpeed * 2, monsterData.RotateSpeed * 2); 
         }
 
         public void ChangeComponent(IMonsterAction nextComponent)
@@ -421,8 +420,15 @@ public class Skeleton : Monster
         return distanceFromTarget;
     }
 
+    // 플레이어 무기와 충돌
+
     private void OnTriggerEnter(Collider other)
     {
+        if(state == MonsterData.State.Die)
+        {
+            return;
+        }
+
         if (other.CompareTag("Weapon"))
         {
             var player = target.GetComponent<PlayerController>();
