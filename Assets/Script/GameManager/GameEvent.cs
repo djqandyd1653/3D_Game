@@ -11,4 +11,9 @@ public class GameEvent : Singleton<GameEvent>
     {
         EventMonsterDead?.Invoke(monster, originPoint, monsterName, respawnTime);
     }
+
+    public void OnEventToDamage(float damage, IDamageable target)
+    {
+        target.ToDamage(damage);
+    }
 }

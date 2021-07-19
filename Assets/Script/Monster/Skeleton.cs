@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Skeleton : Monster
+public class Skeleton : Monster, IDamageable
 {
     private Animator anim;
     private IMonsterAction skeletonAction;
     private Rigidbody rigid;
+    [SerializeField]
+    private MonsterWeapon weapon;
 
     private class StateComponent : MonoBehaviour
     {
@@ -253,13 +255,29 @@ public class Skeleton : Monster
         {
             if(skeleton.state == MonsterData.State.Attack)
             {
+                //skeleton.weapon.SetColliderActive(true);
                 skeleton.anim.Play("Attack");
             }
         }
 
+        private void OnDisable()
+        {
+            skeleton.weapon.AttackAble = false;
+        }
+
         public void MonsterAction()
         {
-            if (skeleton.anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1f)
+            var currAnim = skeleton.anim.GetCurrentAnimatorStateInfo(0);
+            skeleton.weapon.AttackAble = false;
+
+            if (currAnim.IsName("Attack") && 
+                currAnim.normalizedTime >= 0.3f &&
+                currAnim.normalizedTime < 0.41f)
+            {
+                skeleton.weapon.AttackAble = true;
+            }
+
+            if (currAnim.IsName("Attack") && currAnim.normalizedTime >= 1f)
             {
                 skeleton.state = MonsterData.State.Chase;
                 ChangeComponent(GetComponent<Chase>());
@@ -288,7 +306,7 @@ public class Skeleton : Monster
     {
         private void OnEnable()
         {
-            if(skeleton.state == MonsterData.State.Hit)
+            if (skeleton.state == MonsterData.State.Hit)
             {
                 skeleton.anim.Play("Hit");
             }
@@ -302,7 +320,9 @@ public class Skeleton : Monster
                 ChangeComponent(GetComponent<Die>());
             }
 
-            if(skeleton.anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1)
+            var currAnim = skeleton.anim.GetCurrentAnimatorStateInfo(0);
+
+            if (currAnim.IsName("Hit") && currAnim.normalizedTime >= 1)
             {
                 skeleton.state = MonsterData.State.Idle;
                 ChangeComponent(GetComponent<Idle>());
@@ -373,6 +393,7 @@ public class Skeleton : Monster
         originPos = transform.position;                             // (임시) 시작위치 저장 시스템 구축 후 데이터 전달받기
         hp = monsterData.Hp;
         state = MonsterData.State.Idle;
+        healthBar.SetMaxHpBar(hp);
     }
 
     private void Start()
@@ -420,38 +441,24 @@ public class Skeleton : Monster
         return distanceFromTarget;
     }
 
-    // 플레이어 무기와 충돌
-
-    private void OnTriggerEnter(Collider other)
+    // 데미지 전달
+    public void ToDamage(float damage)
     {
-        if(state == MonsterData.State.Die)
+        if (state == MonsterData.State.Die)
         {
             return;
         }
 
-        if (other.CompareTag("Weapon"))
+        hp -= damage;
+        healthBar.SetHpBar(hp);
+
+        if (state == MonsterData.State.Hit)
         {
-            var player = target.GetComponent<PlayerController>();
-            float animationTime = player.CurrAnimationNormalizedTime();
-
-            if (animationTime > 0.5f)
-            {
-                return;
-            }
-
-            if (player.PlayerState == Player.State.Attack01 || player.PlayerState == Player.State.Attack02)
-            {
-                hp -= player.AttackPower;
-
-                if(state == MonsterData.State.Hit)
-                {
-                    anim.Play("Hit", -1, 0);
-                    return;
-                }
-
-                state = MonsterData.State.Hit;
-                skeletonAction.ChangeComponent(GetComponent<Hit>());
-            }
+            anim.Play("Hit", -1, 0);
+            return;
         }
+
+        state = MonsterData.State.Hit;
+        skeletonAction.ChangeComponent(GetComponent<Hit>());
     }
 }

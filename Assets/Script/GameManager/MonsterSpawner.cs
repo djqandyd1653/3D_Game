@@ -54,11 +54,6 @@ public class MonsterSpawner : MonoBehaviour
             spawnPointsData.Add(data.originPosition, new SpawnMonsterData(data.monsterName, data.respawnTime));
         }
 
-        //foreach(var data in spawnPointsData)
-        //{
-        //    Debug.Log("Position: " + data.Key + ", Name: " + data.Value.Name + ", RespawnTime: " + data.Value.RespawnTime);
-        //}
-
         foreach(var monster in monsterObjects)
         {
             // 몬스터 리스트 작성
@@ -112,16 +107,6 @@ public class MonsterSpawner : MonoBehaviour
         monster.transform.SetParent(transform);
         monster.transform.position = transform.position;
         monster.SetActive(false);
-
-        // Test Start : 정보가 확실히 들어갔는지
-
-        //foreach(var a in spawnPointsData)
-        //{
-        //    Debug.Log("Original Position: " + a.Key + ", Name: " + a.Value.Name + ", Respawn Time: " + a.Value.RespawnTime);
-        //}
-        
-
-        // Test End
     }
 
     // 몬스터 리스폰 리스트에서 제거
@@ -159,11 +144,6 @@ public class MonsterSpawner : MonoBehaviour
                     (spawnPointsData[key].Name, spawnPointsData[key].RespawnTime - Time.smoothDeltaTime);
             }
         }
-
-        //foreach (var data in spawnPointsData)
-        //{
-        //    Debug.Log("Position: " + data.Key + ", Name: " + data.Value.Name + ", RespawnTime: " + data.Value.RespawnTime);
-        //}
     }
 
 

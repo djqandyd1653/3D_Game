@@ -17,50 +17,10 @@ public class Monster : MonoBehaviour
     [SerializeField]
     protected float hp;             // (임시) 임시 체력, 나중에 hp바 UI와 연동하여 계산하기
     [SerializeField]
+    protected HealthBar healthBar;
+    [SerializeField]
     protected MonsterData.State state;
 
 
     protected GameObject target;
-
-    //public enum State
-    //{
-    //    Idle,
-    //    Chase,
-    //    Patrol,
-    //    GoBack,
-    //    Attack,
-    //    Hit,
-    //    Die
-    //}
-
-    //public enum Grade
-    //{
-    //    Common,
-    //    Epic,
-    //    Rare,
-    //    Uniqe,
-    //    Legendary
-    //}
-
-    //public float hp;
-    //public float maxHp;
-
-    //public float attackPower;
-    //public float attackSpeed;
-
-    //public float moveSpeed;
-    //public float runSpeed;
-    //public float rotateSpeed;
-
-    //public float armor;
-
-    //public GameObject target;
-    //public float searchRange;
-    //public float patrolRange;
-    //public float attackRange;
-
-    //public Vector3 originPos;
-
-    //public State state;
-    //public Grade grade;
 }

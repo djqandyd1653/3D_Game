@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerController : Player
+public class PlayerController : Player, IDamageable
 {
     public PlayerAction playerAction;
     public Animator anim;
+    public HealthBar healthBar;
 
     public interface PlayerAction
     {
@@ -78,7 +79,7 @@ public class PlayerController : Player
             }
 
             // 왼쪽 쉬프트키가 눌려있으면 Run으로 상태변환
-            if (Input.GetKey(KeyCode.LeftShift) && player.vertical != 0)
+            if (Input.GetKey(KeyCode.LeftShift) && player.vertical > 0)
             {
                 player.ChangeComponent(GetComponent<Run>(), State.Run, 0.25f);
             }
@@ -104,7 +105,7 @@ public class PlayerController : Player
             }
 
             // 왼쪽 쉬프트키가 눌려있다가 떨어지면 Idle로 상태변환
-            if (!Input.GetKey(KeyCode.LeftShift) || player.vertical == 0)
+            if (!Input.GetKey(KeyCode.LeftShift) || player.vertical <= 0)
             {
                 player.ChangeComponent(GetComponent<Idle>(), State.Idle, 0.25f);
             }
@@ -117,19 +118,23 @@ public class PlayerController : Player
     {
         public void Action()
         {
+            var currAnim = player.anim.GetCurrentAnimatorStateInfo(0);
+            player.weapon.AttackAnimTime = currAnim.normalizedTime;
+
             if (player.state == State.Attack01)
             {
                 // 0.5f ~ 0.7f에 2차공격 시도했으면 2차공격으로 상태변환
-                if (player.anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 0.5f &&
-                    player.anim.GetCurrentAnimatorStateInfo(0).normalizedTime <= 0.7f &&
-                    Input.GetMouseButtonDown(0))
+                if (currAnim.normalizedTime >= 0.5f && currAnim.normalizedTime <= 0.7f && 
+                    currAnim.IsName("Attack01") && Input.GetMouseButtonDown(0))
                 {
+                    //player.weapon.SetColliderActive(true);
                     player.ChangeState(State.Attack02, 0.25f);
                 }
             }
 
-            if (player.anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1f)
+            if ((currAnim.IsName("Attack01") || currAnim.IsName("Attack02")) && currAnim.normalizedTime >= 1f)
             {
+                //player.weapon.SetColliderActive(true);
                 player.ChangeComponent(GetComponent<Idle>(), State.Idle);
             }
         }
@@ -139,8 +144,8 @@ public class PlayerController : Player
     {
         public void Action()
         {
-            if (player.anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1f &&
-                player.anim.GetCurrentAnimatorStateInfo(0).IsName("Hit"))
+            var currAnim = player.anim.GetCurrentAnimatorStateInfo(0);
+            if (currAnim.IsName("Hit") && currAnim.normalizedTime >= 1f)
             {
                 player.ChangeComponent(GetComponent<Idle>(), State.Idle);
             }
@@ -172,6 +177,9 @@ public class PlayerController : Player
         playerAction = GetComponent<Idle>();
         state = State.Idle;
         rigid = GetComponent<Rigidbody>();
+
+        healthBar.SetMaxHpBar(hp);
+
     }
 
     private void Update()
@@ -201,6 +209,8 @@ public class PlayerController : Player
         {
             strNextState = state.ToString();
         }
+
+        weapon.StrState = strNextState;
 
         if(transitionDuraingTime == 0f)
         {
@@ -263,28 +273,55 @@ public class PlayerController : Player
         return anim.GetCurrentAnimatorStateInfo(0).normalizedTime;
     }
 
-    // 적 무기와 충돌
-    private void OnTriggerEnter(Collider other)
+    public void ToDamage(float damage)
     {
-        if(other.CompareTag("Monster Weapon"))
+        hp -= damage;
+        healthBar.SetHpBar(hp);
+
+        if (hp <= 0)
         {
-            var monster = other.transform.parent.transform.parent;
-            float animationTime = monster.GetComponent<Animator>().GetCurrentAnimatorStateInfo(0).normalizedTime;
-
-            if (animationTime < 0.33f || animationTime > 0.37f)
-            {
-                return;
-            }
-
-            hp -= monster.GetComponent<Monster>().monsterData.AttackPower;
-
-            if(hp <= 0)
-            {
-                ChangeComponent(GetComponent<Die>(), State.Die);
-                return;
-            }
-
-            ChangeComponent(GetComponent<Hit>(), State.Hit);
+            ChangeComponent(GetComponent<Die>(), State.Die);
+            return;
         }
+
+        if(state == State.Hit)
+        {
+            anim.Play("Hit", -1, 0);
+        }
+
+        ChangeComponent(GetComponent<Hit>(), State.Hit);
     }
+
+    //private void TakeDamage(float damage)
+    //{
+    //    hp -= damage;
+    //    healthBar.SetHpBar(hp);
+
+    //    if (hp <= 0)
+    //    {
+    //        ChangeComponent(GetComponent<Die>(), State.Die);
+    //        return;
+    //    }
+
+    //    ChangeComponent(GetComponent<Hit>(), State.Hit);
+    //}
+
+    // 적 무기와 충돌
+    //private void OnTriggerEnter(Collider other)
+    //{
+    //    if(other.CompareTag("Monster Weapon"))
+    //    {
+    //        var monster = other.transform.parent.transform.parent;
+    //        float animationTime = monster.GetComponent<Animator>().GetCurrentAnimatorStateInfo(0).normalizedTime;
+
+    //        if (animationTime < 0.33f || animationTime > 0.37f)
+    //        {
+    //            return;
+    //        }
+
+    //        float damage = monster.GetComponent<Monster>().monsterData.AttackPower;
+
+    //        TakeDamage(damage);
+    //    }
+    //}
 }

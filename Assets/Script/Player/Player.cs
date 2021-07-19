@@ -18,6 +18,7 @@ public class Player : MonoBehaviour
     [Header("Hp")]
     [SerializeField]
     protected float hp;
+    public float Hp { get { return hp; } }
 
     [Header("State")]
     [SerializeField]
@@ -25,10 +26,14 @@ public class Player : MonoBehaviour
     public State PlayerState { get { return state; } }
 
     [Header("Stamina")]
-    public float stamina;                   // 현재 스태미나
-    public float maxStamina;                // 최대 스태미나
-    public float staminaFillAmount;         // 스태미나 1회 충전량
-    public float staminaChargeCycle;        // 스태미나 충전 주기
+    [SerializeField]
+    protected float stamina;                   // 현재 스태미나
+    [SerializeField]
+    protected float maxStamina;                // 최대 스태미나
+    [SerializeField]
+    protected float staminaFillAmount;         // 스태미나 1회 충전량
+    [SerializeField]
+    protected float staminaChargeCycle;        // 스태미나 충전 주기
 
     [Header("Attack")]
     [SerializeField]
@@ -36,11 +41,18 @@ public class Player : MonoBehaviour
     public float AttackPower { get { return attackPower; } }
 
     [Header("Move")]
-    public float vertical;                  // 전, 후 방향
-    public float horizontal;                // 좌, 우 방향
-    public float moveSpeed;
-    public float runSpeed;
-    public float rotateSpeed;
+    protected float vertical;                  // 전, 후 방향
+    [SerializeField]
+    protected float horizontal;                // 좌, 우 방향
+    [SerializeField]
+    protected float moveSpeed;
+    [SerializeField]
+    protected float runSpeed;
+    [SerializeField]
+    protected float rotateSpeed;
 
-    public Rigidbody rigid;
+    protected Rigidbody rigid;
+
+    [SerializeField]
+    protected PlayerWeapon weapon;
 }
