@@ -2,58 +2,50 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public interface MouseSetting
-{
-    void SetMouse();
-    MouseSetting ChangeMouseMode();
-}
-
-public class OffMouse : MonoBehaviour, MouseSetting
-{
-    public void SetMouse()
-    {
-        Cursor.visible = false;
-        Cursor.lockState = CursorLockMode.Locked;
-    }
-
-    public MouseSetting ChangeMouseMode()
-    {
-        return GetComponent<OnMouse>();
-    }
-}
-
-public class OnMouse : MonoBehaviour, MouseSetting
-{
-    public void SetMouse()
-    {
-        Cursor.visible = true;
-        Cursor.lockState = CursorLockMode.None;
-    }
-
-    public MouseSetting ChangeMouseMode()
-    {
-        return GetComponent<OffMouse>();
-    }
-}
-
 public class GameManager : MonoBehaviour
 {
-    MouseSetting mouse;
+    public Canvas mainMenuCanvas;
 
     void Start()
     {
-        gameObject.AddComponent<OffMouse>();
-        gameObject.AddComponent<OnMouse>();
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
 
-        mouse = GetComponent<OffMouse>();
+        // 메인 메뉴 열고 닫기
+        GameEvent.Instance.EventSetActiveMainMenu += SetActiveMouse;
+        GameEvent.Instance.EventSetActiveMainMenu += SetActiveMainMenu;
     }
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
-            mouse = mouse.ChangeMouseMode();
-            mouse.SetMouse();
+            bool isOpen = mainMenuCanvas.gameObject.activeSelf;
+            if (isOpen)
+            {
+                GameEvent.Instance.OnEventSetActiveMainMenu(isOpen);
+                return;
+            }
+
+            GameEvent.Instance.OnEventSetActiveMainMenu(isOpen);
         }
+    }
+
+    private void SetActiveMouse(bool isOpen)
+    {
+        Cursor.visible = isOpen ? false : true;
+
+        if(isOpen)
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            return;
+        }
+
+        Cursor.lockState = CursorLockMode.None;
+    }
+
+    private void SetActiveMainMenu(bool isOpen)
+    {
+        mainMenuCanvas.gameObject.SetActive(!isOpen);
     }
 }
