@@ -394,6 +394,11 @@ public class Skeleton : Monster, IDamageable
         hp = monsterData.Hp;
         state = MonsterData.State.Idle;
         healthBar.SetMaxHpBar(hp);
+
+        if(skeletonAction != null)
+        {
+            skeletonAction.ChangeComponent(GetComponent<Idle>());
+        }
     }
 
     private void Start()

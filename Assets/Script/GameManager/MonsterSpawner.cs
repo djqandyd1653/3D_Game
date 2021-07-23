@@ -33,6 +33,7 @@ public class MonsterSpawner : MonoBehaviour
 
     // 몬스터 오브젝트 폴
     private Dictionary<string, Queue<GameObject>> monsterPoolManager;
+    public Dictionary<string, Queue<GameObject>> MonsterPoolManager { get { return monsterPoolManager; } }
 
     // 몬스터 위치 데이터 리스트
     private Dictionary<Vector3, SpawnMonsterData> spawnPointsData;
@@ -60,8 +61,13 @@ public class MonsterSpawner : MonoBehaviour
             monsterList.Add(monster.name, monster);
             // 오브젝트 풀 생성
             monsterPoolManager.Add(monster.name, new Queue<GameObject>());
-            // 몬스터 생성
-            CreateMonster(monsterPoolManager[monster.name], monster, 5);
+        }
+
+        // 몬스터 생성
+        foreach (var monsterSpawnInfo in  firstSpawnDatas.DataList)
+        {
+            string name = monsterSpawnInfo.monsterName;
+            CreateMonster(monsterPoolManager[name], monsterList[name]);
         }
 
         // 몬스터 사망시 이벤트 등록
@@ -69,7 +75,7 @@ public class MonsterSpawner : MonoBehaviour
     }
 
     // 오브젝트 풀에 몬스터 생성
-    void CreateMonster(Queue<GameObject> queue, GameObject monster, int count = 1)
+    public void CreateMonster(Queue<GameObject> queue, GameObject monster, int count = 1)
     {
         for(int i = 0; i < count; i++)
         {
@@ -80,7 +86,7 @@ public class MonsterSpawner : MonoBehaviour
     }
 
     // 오브젝트 풀에서 몬스터 가져오기
-    void GetMonster(string monsterName, Vector3 spawnPosition)
+    public void GetMonster(string monsterName, Vector3 spawnPosition)
     {
         if (monsterPoolManager[monsterName].Count == 0)
         {

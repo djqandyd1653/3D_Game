@@ -287,6 +287,7 @@ public class PlayerController : Player, IDamageable
         if(state == State.Hit)
         {
             anim.Play("Hit", -1, 0);
+            return;
         }
 
         ChangeComponent(GetComponent<Hit>(), State.Hit);
