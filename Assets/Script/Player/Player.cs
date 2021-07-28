@@ -18,7 +18,7 @@ public class Player : MonoBehaviour
     [Header("Hp")]
     [SerializeField]
     protected float hp;
-    public float Hp { get { return hp; } }
+    public float Hp { get { return hp; } set { if (value >= 0) hp = value; } }
 
     [Header("State")]
     [SerializeField]
@@ -38,7 +38,7 @@ public class Player : MonoBehaviour
     [Header("Attack")]
     [SerializeField]
     protected float attackPower;
-    public float AttackPower { get { return attackPower; } }
+    public float AttackPower { get { return attackPower; } set { attackPower = value; } }
 
     [Header("Move")]
     protected float vertical;                  // 전, 후 방향
@@ -55,4 +55,7 @@ public class Player : MonoBehaviour
 
     [SerializeField]
     protected PlayerWeapon weapon;
+    [SerializeField]
+    protected HealthBar healthBar;
+    public HealthBar HealthBar { get { return healthBar; } }
 }

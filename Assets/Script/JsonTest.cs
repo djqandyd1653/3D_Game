@@ -34,6 +34,9 @@ public class JsonTest : MonoBehaviour
         public float hp;
 
         [SerializeField]
+        public CustomVector3 originPosition;
+
+        [SerializeField]
         public CustomVector3 position;
 
         [SerializeField]
@@ -159,6 +162,10 @@ public class JsonTest : MonoBehaviour
         var playerObject = GameObject.FindGameObjectWithTag("Player");
         var player = playerObject.GetComponent<Player>();
 
+        player.Hp = playerData.hp;
+        player.HealthBar.SetHpBar(player.Hp);
+        player.AttackPower = playerData.attackPower;
+
         playerObject.transform.position = playerData.position.ToVector3();
 
         playerObject.transform.rotation = playerData.rotation.ToQuaternion();
@@ -167,6 +174,7 @@ public class JsonTest : MonoBehaviour
     // 몬스터 데이터 저장하기
     public void SaveMonsterData()
     {
+        // 활성화된 몬스터 오브젝트들 찾기
         GameObject[] monsterObjects = GameObject.FindGameObjectsWithTag("Monster");
 
         List<MonsterJsonData> monsters = new List<MonsterJsonData>();
@@ -175,12 +183,13 @@ public class JsonTest : MonoBehaviour
         {
             MonsterJsonData monster = new MonsterJsonData();
 
-            MonsterData monsterData = monsterObjects[i].GetComponent<Monster>().monsterData;
+            var monsterData = monsterObjects[i].GetComponent<Monster>();
 
-            monster.name = monsterData.MonsterName;
+            monster.name = monsterData.monsterData.MonsterName;
             monster.hp = monsterData.Hp;
             monster.isActive = monsterObjects[i].activeSelf;
             monster.parent = monsterObjects[i].transform.parent;
+            monster.originPosition = new CustomVector3(monsterData.OriginPos);
             monster.position = new CustomVector3(monsterObjects[i].transform.position);
 
             monster.rotation = new CustomVector3(monsterObjects[i].transform.rotation);
@@ -197,53 +206,35 @@ public class JsonTest : MonoBehaviour
     // 몬스터 데이터 불러오기
     public void LoadMonsterData()
     {
+        // 데이터 초기화
+        spawner.Init();
         GameObject[] monsterObjects = GameObject.FindGameObjectsWithTag("Monster");
 
-        for(int i = 0; i < monsterObjects.Length; i++)
+        foreach(var monster in monsterObjects)
         {
-            var monster = monsterObjects[i].GetComponent<Monster>();
-            GameEvent.Instance.OnEventMonsterDead(monsterObjects[i], monster.OriginPos, monster.monsterData.MonsterName, monster.monsterData.RespawnTime);
+            Destroy(monster);
         }
 
         string path = Path.Combine(Application.dataPath, "MonsterData.json");
         string jsonData = File.ReadAllText(path);
-        CustomList<MonsterJsonData> monsterJsonDataList = JsonUtility.FromJson<CustomList<MonsterJsonData>>(jsonData);
+        List<MonsterJsonData> monsters = JsonUtility.FromJson<CustomList<MonsterJsonData>>(jsonData).ToList();
 
-        List<MonsterJsonData> monsters = monsterJsonDataList.ToList();
         int count = monsters.Count;
 
         for(int i = 0; i < count; i++)
         {
-            var monster = spawner.MonsterPoolManager[monsters[i].name].Dequeue();
-            monster.transform.position = monsters[i].position.ToVector3();
-            monster.transform.rotation = monsters[i].rotation.ToQuaternion();
-            monster.transform.SetParent(monsters[i].parent);
-            monster.gameObject.SetActive(monsters[i].isActive);
+            if(spawner.SpawnPointsData.Remove(monsters[i].originPosition.ToVector3()))
+            {
+                var monster = spawner.MonsterPoolManager[monsters[i].name].Dequeue();
+                monster.transform.position = monsters[i].position.ToVector3();
+                monster.transform.rotation = monsters[i].rotation.ToQuaternion();
+                monster.transform.SetParent(monsters[i].parent);
+                monster.gameObject.SetActive(monsters[i].isActive);
+                monster.GetComponent<Monster>().Hp = monsters[i].hp;
+                monster.GetComponent<Monster>().HealthBar.SetHpBar(monsters[i].hp);
+            }
         }
 
-        //GameObject[] monsterObjects = GameObject.FindGameObjectsWithTag("Monster");
-
-        //List<MonsterJsonData> monsters = monsterJsonDataList.ToList();
-
-        //for (int i = 0; i < monsterObjects.Length; i++)
-        //{
-        //    MonsterJsonData monster = new MonsterJsonData();
-
-        //    MonsterData monsterData = monsterObjects[i].GetComponent<Monster>().monsterData;
-
-        //    monster.hp = monsterData.Hp;
-        //    monster.isActive = monsterObjects[i].activeSelf;
-        //    monster.parent = monsterObjects[i].transform.parent;
-        //    monster.position = new CustomVector3(monsterObjects[i].transform.position.x,
-        //                                         monsterObjects[i].transform.position.y,
-        //                                         monsterObjects[i].transform.position.z);
-
-        //    monster.rotation = new CustomVector3(monsterObjects[i].transform.rotation.x,
-        //                                         monsterObjects[i].transform.rotation.y,
-        //                                         monsterObjects[i].transform.rotation.z,
-        //                                         monsterObjects[i].transform.rotation.w);
-
-        //    monsters.Add(monster);
-        //}
+        spawner.Test();
     }
 }

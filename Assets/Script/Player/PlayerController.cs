@@ -6,7 +6,6 @@ public class PlayerController : Player, IDamageable
 {
     public PlayerAction playerAction;
     public Animator anim;
-    public HealthBar healthBar;
 
     public interface PlayerAction
     {

@@ -18,8 +18,10 @@ public class Monster : MonoBehaviour
 
     [SerializeField]
     protected float hp;             // (임시) 임시 체력, 나중에 hp바 UI와 연동하여 계산하기
+    public float Hp { get { return hp; } set { if (value >= 0) hp = value; } }
     [SerializeField]
     protected HealthBar healthBar;
+    public HealthBar HealthBar { get { return healthBar; } }
     [SerializeField]
     protected MonsterData.State state;
 

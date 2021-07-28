@@ -35,8 +35,9 @@ public class MonsterSpawner : MonoBehaviour
     private Dictionary<string, Queue<GameObject>> monsterPoolManager;
     public Dictionary<string, Queue<GameObject>> MonsterPoolManager { get { return monsterPoolManager; } }
 
-    // 몬스터 위치 데이터 리스트
+    // 몬스터 위치, 이름, 리스폰시간 데이터 리스트
     private Dictionary<Vector3, SpawnMonsterData> spawnPointsData;
+    public Dictionary<Vector3, SpawnMonsterData> SpawnPointsData { get { return spawnPointsData; } }
 
     // 플레이어 위치정보
     private Transform player;
@@ -44,27 +45,66 @@ public class MonsterSpawner : MonoBehaviour
 
     void Start()
     {
-        monsterList = new Dictionary<string, GameObject>();
+        Init();
+    }
 
-        monsterPoolManager = new Dictionary<string, Queue<GameObject>>();
-        spawnPointsData = new Dictionary<Vector3, SpawnMonsterData>();
-        player = GameObject.FindGameObjectWithTag("Player").transform;
-
-        foreach (var data in firstSpawnDatas.DataList)
+    public void Init()
+    {
+        if(player == null)
         {
-            spawnPointsData.Add(data.originPosition, new SpawnMonsterData(data.monsterName, data.respawnTime));
+            player = GameObject.FindGameObjectWithTag("Player").transform;
         }
 
-        foreach(var monster in monsterObjects)
+
+        if (monsterList == null)
         {
+            monsterList = new Dictionary<string, GameObject>();
+
             // 몬스터 리스트 작성
-            monsterList.Add(monster.name, monster);
-            // 오브젝트 풀 생성
+            foreach (var monster in monsterObjects)
+            {
+                monsterList.Add(monster.name, monster);
+            }
+        }
+
+        if(monsterPoolManager == null)
+        {
+            monsterPoolManager = new Dictionary<string, Queue<GameObject>>();
+        }
+
+        if(spawnPointsData == null)
+        {
+            spawnPointsData = new Dictionary<Vector3, SpawnMonsterData>();
+        }
+
+        foreach(var queue in monsterPoolManager.Values)
+        {
+            int count = queue.Count;
+
+            for(int i = 0; i < count; i++)
+            {
+                var obj = queue.Dequeue();
+                Destroy(obj);
+            }
+        }
+
+        monsterPoolManager.Clear();
+        spawnPointsData.Clear();
+
+        // 스폰 데이터 생성
+        foreach (var data in firstSpawnDatas.DataList)
+        {
+            spawnPointsData.Add(data.originPosition, new SpawnMonsterData(data.monsterName, 0));
+        }
+
+        // 오브젝트 풀 생성
+        foreach (var monster in monsterObjects)
+        {
             monsterPoolManager.Add(monster.name, new Queue<GameObject>());
         }
 
         // 몬스터 생성
-        foreach (var monsterSpawnInfo in  firstSpawnDatas.DataList)
+        foreach (var monsterSpawnInfo in firstSpawnDatas.DataList)
         {
             string name = monsterSpawnInfo.monsterName;
             CreateMonster(monsterPoolManager[name], monsterList[name]);
@@ -80,6 +120,7 @@ public class MonsterSpawner : MonoBehaviour
         for(int i = 0; i < count; i++)
         {
             var tempMonster = Instantiate(monster, transform.position, Quaternion.identity, transform);
+            //tempMonster.GetComponent<Monster>().OriginPos = 
             queue.Enqueue(tempMonster);
             tempMonster.SetActive(false);
         }
@@ -157,5 +198,13 @@ public class MonsterSpawner : MonoBehaviour
     {
         CalculateRespawnTime();
         DisRegistrateSpawnPointDatas();
+    }
+
+    public void Test()
+    {
+        foreach(var data in spawnPointsData)
+        {
+            Debug.Log(data.Key);
+        }
     }
 }
