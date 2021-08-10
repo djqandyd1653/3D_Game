@@ -63,7 +63,7 @@ public class SpawnPointSettingWindow : EditorWindow
 
     private void InitData()
     {
-        monsterSpawnPointsData = Resources.Load<MonsterSpawnPointsData>("Datas/Scriptable Data/SpawnPosition/New Monster Spawn Points Data");
+        monsterSpawnPointsData = Resources.Load<MonsterSpawnPointsData>("Datas/SpawnPosition/New Monster Spawn Points Data");
         monsterObjects = Resources.LoadAll<GameObject>("Prefabs/Monster");
 
         foreach (var data in monsterObjects)
