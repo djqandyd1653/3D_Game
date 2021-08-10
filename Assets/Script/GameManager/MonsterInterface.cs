@@ -4,8 +4,8 @@ using UnityEngine;
 
 public interface IMonsterAction
 {
-    void MonsterAction();
-    void ChangeComponent(IMonsterAction nextComponent);
+    void MonsterAction();                                   // 실행될 동장
+    void ChangeComponent(IMonsterAction nextComponent);     // 컴포넌트 교체
 }
 
 public interface IDamageable

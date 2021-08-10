@@ -234,7 +234,5 @@ public class JsonTest : MonoBehaviour
                 monster.GetComponent<Monster>().HealthBar.SetHpBar(monsters[i].hp);
             }
         }
-
-        spawner.Test();
     }
 }

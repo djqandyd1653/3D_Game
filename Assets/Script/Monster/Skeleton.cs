@@ -22,7 +22,6 @@ public class Skeleton : Monster, IDamageable
         }
     }
 
-
     // 기본 상태
 
     private class Idle : StateComponent, IMonsterAction
@@ -185,9 +184,9 @@ public class Skeleton : Monster, IDamageable
             while (true)
             {
                 int angle = Random.Range(0, 360);
-                destPos = new Vector3(transform.position.x + Mathf.Cos(angle) * monsterData.PatrolRange,
-                                      transform.position.y,
-                                      transform.position.z + Mathf.Sin(angle) * monsterData.PatrolRange);
+                destPos = new Vector3(skeleton.originPos.x + Mathf.Cos(angle) * monsterData.PatrolRange,
+                                      skeleton.originPos.y,
+                                      skeleton.originPos.z + Mathf.Sin(angle) * monsterData.PatrolRange);
                 yield return new WaitForSeconds(5.0f);
             }
         }
@@ -255,7 +254,6 @@ public class Skeleton : Monster, IDamageable
         {
             if(skeleton.state == MonsterData.State.Attack)
             {
-                //skeleton.weapon.SetColliderActive(true);
                 skeleton.anim.Play("Attack");
             }
         }

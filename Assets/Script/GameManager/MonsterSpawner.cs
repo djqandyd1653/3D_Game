@@ -42,6 +42,9 @@ public class MonsterSpawner : MonoBehaviour
     // 플레이어 위치정보
     private Transform player;
 
+    [SerializeField]
+    private float spawnRange;
+
 
     void Start()
     {
@@ -120,7 +123,6 @@ public class MonsterSpawner : MonoBehaviour
         for(int i = 0; i < count; i++)
         {
             var tempMonster = Instantiate(monster, transform.position, Quaternion.identity, transform);
-            //tempMonster.GetComponent<Monster>().OriginPos = 
             queue.Enqueue(tempMonster);
             tempMonster.SetActive(false);
         }
@@ -163,7 +165,7 @@ public class MonsterSpawner : MonoBehaviour
             return;
 
         var points = from point in spawnPointsData.Keys.ToList()
-                where (Vector3.SqrMagnitude(player.position - point) < 100 && spawnPointsData[point].RespawnTime <= 0)
+                where (Vector3.SqrMagnitude(player.position - point) < Mathf.Pow(spawnRange, 2) && spawnPointsData[point].RespawnTime <= 0)
                 select point;
 
         foreach(var point in points)
@@ -198,13 +200,5 @@ public class MonsterSpawner : MonoBehaviour
     {
         CalculateRespawnTime();
         DisRegistrateSpawnPointDatas();
-    }
-
-    public void Test()
-    {
-        foreach(var data in spawnPointsData)
-        {
-            Debug.Log(data.Key);
-        }
     }
 }

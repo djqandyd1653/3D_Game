@@ -35,7 +35,7 @@ public class FishAI : MonoBehaviour
         rigid.Sleep();
 
         var pos = transform.position;
-        pos.y = 0.1f;
+        pos.y = -3f;
         transform.position = pos;
 
         remainTime -= Time.deltaTime;
